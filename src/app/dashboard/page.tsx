@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 import KeysManager from '@/components/keys-manager';
+import ActivityFeed from '@/components/activity-feed';
+import { fetchStats } from '@/lib/data';
 
 export const metadata = { title: 'Dashboard — Hadal Research' };
 
@@ -13,37 +15,27 @@ async function getMe(): Promise<Me | null> {
   const token = c.get('hadal_session')?.value;
   if (!token) return null;
   try {
-    const res = await fetch(`${API}/me`, {
-      headers: { Cookie: `hadal_session=${token}` },
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    return res.json();
+    const res = await fetch(`${API}/me`, { headers: { Cookie: `hadal_session=${token}` }, cache: 'no-store' });
+    return res.ok ? res.json() : null;
   } catch {
     return null;
   }
 }
 
-async function getWorkers(me: Me | null): Promise<WorkerRow[]> {
-  if (!me) return [];
+async function getAccount(me: Me | null): Promise<{ workers: WorkerRow[] }> {
+  if (!me) return { workers: [] };
   try {
     const c = await cookies();
     const token = c.get('hadal_session')?.value!;
     const keyRes = await fetch(`${API}/account/key`, {
-      method: 'POST',
-      headers: { Cookie: `hadal_session=${token}` },
-      cache: 'no-store',
+      method: 'POST', headers: { Cookie: `hadal_session=${token}` }, cache: 'no-store',
     });
-    if (!keyRes.ok) return [];
+    if (!keyRes.ok) return { workers: [] };
     const { api_key } = await keyRes.json();
-    const res = await fetch(`${API}/account/workers`, {
-      headers: { 'X-Worker-Key': api_key },
-      cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    return res.json();
+    const res = await fetch(`${API}/account/workers`, { headers: { 'X-Worker-Key': api_key }, cache: 'no-store' });
+    return { workers: res.ok ? await res.json() : [] };
   } catch {
-    return [];
+    return { workers: [] };
   }
 }
 
@@ -55,20 +47,34 @@ function fmtSeen(ts: number | null) {
   return `${Math.floor(s / 3600)}h ago`;
 }
 
+function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-xl border border-[#161a1e] bg-[#07090b] p-5">
+      <p className="mono-label mb-3">{label}</p>
+      <p className="tabular font-mono text-2xl text-[#f5f5f2]">{value}</p>
+      {sub ? <p className="mt-1 text-xs text-[#555b61]">{sub}</p> : null}
+    </div>
+  );
+}
+
 export default async function DashboardPage() {
-  const me = await getMe();
-  const workers = await getWorkers(me);
+  const [me, stats] = await Promise.all([getMe(), fetchStats()]);
+  const { workers } = await getAccount(me);
 
   if (!me) {
     return (
       <main className="mx-auto max-w-6xl px-6 pb-32">
         <p className="mono-label pt-20">CONTRIBUTOR CONSOLE</p>
         <h1 className="mt-6 text-4xl font-semibold tracking-tight">Sign in required</h1>
-        <p className="mt-4 max-w-md text-sm text-[#8c9197]">
-          Sign in with GitHub or Discord (top right), then link your machines with your personal worker key.
+        <p className="mt-4 max-w-md text-sm leading-relaxed text-[#8c9197]">
+          Sign in with GitHub or Discord (top right) to open your console — manage
+          worker keys, linked machines, and your contribution stats.
         </p>
-        <div className="mt-8 rounded-xl border border-[#161a1e] bg-[#07090b] p-6 font-mono text-xs text-[#8c9197]">
-          $ pip install hadal-worker && hadal-worker
+        <div className="mt-10 grid max-w-lg grid-cols-2 gap-px bg-[#161a1e] font-mono text-xs">
+          <div className="bg-[#07090b] px-5 py-4 text-[#8c9197]">MANAGE KEYS</div>
+          <div className="bg-[#07090b] px-5 py-4 text-[#8c9197]">LINK MACHINES</div>
+          <div className="bg-[#07090b] px-5 py-4 text-[#8c9197]">TRACK HOURS</div>
+          <div className="bg-[#07090b] px-5 py-4 text-[#8c9197]">LEADERBOARD</div>
         </div>
       </main>
     );
@@ -79,59 +85,87 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 pb-32">
-      <p className="mono-label pt-20">CONTRIBUTOR CONSOLE</p>
-      <h1 className="mt-6 text-4xl font-semibold tracking-tight">
-        Welcome back{me.username ? ', ' : ''}
-        {me.username ? <span className="text-[#8c9197]">{me.username}</span> : null}
-      </h1>
-
-      <div className="mt-12 grid grid-cols-3 gap-px bg-[#161a1e] font-mono">
-        <div className="bg-[#030405] px-6 py-5">
-          <p className="mono-label mb-2">GPU HOURS TOTAL</p>
-          <p className="tabular text-2xl text-[#f5f5f2]">{totalHours.toFixed(2)}</p>
+      {/* header row */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pt-16">
+        <div>
+          <p className="mono-label">CONTRIBUTOR CONSOLE</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+            Welcome back{me.username ? ', ' : ''}
+            {me.username ? <span className="text-[#8c9197]">{me.username}</span> : null}
+          </h1>
         </div>
-        <div className="bg-[#030405] px-6 py-5">
-          <p className="mono-label mb-2">WORKERS ONLINE</p>
-          <p className="tabular text-2xl text-[#f5f5f2]">{online} / {workers.length}</p>
-        </div>
-        <div className="bg-[#030405] px-6 py-5">
-          <p className="mono-label mb-2">LINKED MACHINES</p>
-          <p className="tabular text-2xl text-[#f5f5f2]">{workers.length}</p>
-        </div>
+        <a href="/contribute" className="btn btn-primary">
+          Add machine →
+        </a>
       </div>
 
-      <h2 className="mt-16 text-lg font-medium text-[#f5f5f2]">Your Workers</h2>
-      {workers.length === 0 ? (
-        <div className="mt-4 rounded-xl border border-[#161a1e] bg-[#07090b] p-10 text-center font-mono text-xs text-[#8c9197]">
-          No machines linked yet — run hadal-worker anywhere and paste your key.
-        </div>
-      ) : (
-        <div className="border-t hairline font-mono text-xs">
-          {workers.map((w) => (
-            <div key={w.id} className="record grid grid-cols-2 items-center gap-4 border-b hairline py-4 md:grid-cols-5">
-              <span className="text-[#f5f5f2]">{w.name || w.id}</span>
-              <span className="text-[#8c9197]">{w.gpu}{w.vram ? ` ${w.vram.toFixed(0)}GB` : ''}</span>
-              <span className={w.paused ? 'text-[#8c9197]' : 'text-emerald-500'}>
-                {w.paused ? 'PAUSED' : 'CONTRIBUTING'}
-              </span>
-              <span className="tabular text-[#8c9197]">{w.gpu_hours.toFixed(2)} H</span>
-              <span className="text-[#555b61]">seen {fmtSeen(w.last_seen)}</span>
+      {/* stats */}
+      <div className="mt-12 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Your GPU hours" value={totalHours.toFixed(2)} sub={`${workers.length} machine${workers.length === 1 ? '' : 's'} linked`} />
+        <StatCard label="Workers online" value={`${online}/${workers.length}`} sub="last 5 min" />
+        <StatCard label="Network GPU hours" value={Math.round(stats.gpu_hours).toLocaleString()} sub="all contributors" />
+        <StatCard label="Network contributors" value={stats.contributors.toLocaleString()} sub={`${stats.workers_online} online now`} />
+      </div>
+
+      {/* two-column body */}
+      <div className="mt-14 grid gap-10 lg:grid-cols-[1fr_320px]">
+        <div className="space-y-14">
+          <section>
+            <h2 className="mb-1 text-lg font-medium text-[#f5f5f2]">Linked machines</h2>
+            <p className="mb-5 text-xs text-[#555b61]">Every machine running hadal-worker under your account.</p>
+            {workers.length === 0 ? (
+              <div className="rounded-xl border border-[#161a1e] bg-[#07090b] p-10 text-center font-mono text-xs text-[#8c9197]">
+                No machines yet. Create a key below, then run hadal-worker and paste it in.
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border border-[#161a1e]">
+                {workers.map((w, i) => (
+                  <div key={w.id} className={`grid grid-cols-2 items-center gap-4 bg-[#07090b] px-5 py-4 md:grid-cols-5 ${i > 0 ? 'border-t border-[#161a1e]' : ''}`}>
+                    <span className="text-sm text-[#f5f5f2]">{w.name || w.id}</span>
+                    <span className="font-mono text-xs text-[#8c9197]">{w.gpu}{w.vram ? ` · ${w.vram.toFixed(0)}GB` : ''}</span>
+                    <span className={`font-mono text-[11px] ${w.paused ? 'text-[#555b61]' : 'text-emerald-500'}`}>
+                      {w.paused ? 'PAUSED' : 'CONTRIBUTING'}
+                    </span>
+                    <span className="font-mono text-xs tabular text-[#8c9197]">{w.gpu_hours.toFixed(2)} H</span>
+                    <span className="text-right font-mono text-[11px] text-[#555b61]">{fmtSeen(w.last_seen)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section>
+            <h2 className="mb-1 text-lg font-medium text-[#f5f5f2]">Worker keys</h2>
+            <p className="mb-5 text-xs text-[#555b61]">One key per machine. Delete a key to unlink that machine at its next heartbeat.</p>
+            <KeysManager />
+          </section>
+
+          <section>
+            <h2 className="mb-1 text-lg font-medium text-[#f5f5f2]">Link a new machine</h2>
+            <div className="mt-4 space-y-3 rounded-xl border border-[#161a1e] bg-[#07090b] p-6 font-mono text-xs">
+              <p><span className="text-[#555b61]">$</span> pip install hadal-worker</p>
+              <p><span className="text-[#555b61]">$</span> hadal-worker</p>
+              <p className="text-[#8c9197]">Paste any active key when prompted.</p>
             </div>
-          ))}
+          </section>
         </div>
-      )}
 
-      <h2 className="mt-16 text-lg font-medium text-[#f5f5f2]">Worker Keys</h2>
-      <p className="mb-6 mt-2 text-xs text-[#555b61]">
-        One key per machine — revoke individually without touching the rest.
-      </p>
-      <KeysManager />
-
-      <h2 className="mt-16 text-lg font-medium text-[#f5f5f2]">Link a new machine</h2>
-      <div className="mt-4 space-y-3 rounded-xl border border-[#161a1e] bg-[#07090b] p-6 font-mono text-xs">
-        <p><span className="text-[#555b61]">$</span> pip install hadal-worker</p>
-        <p><span className="text-[#555b61]">$</span> hadal-worker</p>
-        <p className="text-[#8c9197]">Paste any of your worker keys when asked.</p>
+        {/* right rail */}
+        <aside className="space-y-6">
+          <div className="rounded-xl border border-[#161a1e] bg-[#07090b] p-5">
+            <h3 className="mb-4 text-sm font-medium text-[#f5f5f2]">Network status</h3>
+            <dl className="space-y-3 font-mono text-xs">
+              <div className="flex justify-between"><dt className="text-[#555b61]">ACTIVE RUNS</dt><dd className="tabular text-[#f5f5f2]">{stats.active_runs}</dd></div>
+              <div className="flex justify-between"><dt className="text-[#555b61]">CONTRIBUTORS</dt><dd className="tabular text-[#f5f5f2]">{stats.contributors.toLocaleString()}</dd></div>
+              <div className="flex justify-between"><dt className="text-[#555b61]">ONLINE NOW</dt><dd className="tabular text-emerald-500">{stats.workers_online}</dd></div>
+              <div className="flex justify-between"><dt className="text-[#555b61]">TOTAL HOURS</dt><dd className="tabular text-[#f5f5f2]">{Math.round(stats.gpu_hours).toLocaleString()}</dd></div>
+            </dl>
+            <a href="/models" className="mt-5 inline-flex items-center gap-1.5 text-xs text-[#5b8fa8] hover:text-white">
+              Leaderboard →
+            </a>
+          </div>
+          <ActivityFeed limit={5} />
+        </aside>
       </div>
     </main>
   );
