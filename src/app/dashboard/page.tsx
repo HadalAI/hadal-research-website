@@ -1,7 +1,7 @@
 import KeysManager from '@/components/keys-manager';
 import ActivityFeed from '@/components/activity-feed';
 
-export const metadata = { title: 'Dashboard — Hadal Research' };
+export const metadata = { title: 'Dashboard' };
 
 function Console() {
   return <DashboardClient />;

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import NetworkField from '@/components/network-field';
 
-export const metadata = { title: 'Network — Hadal Research' };
+export const metadata = { title: 'Network' };
 
 export default async function NetworkPage() {
   const { fetchStats } = await import('@/lib/data');

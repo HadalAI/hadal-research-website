@@ -10,7 +10,7 @@ type UserRow = { id: string; username: string; is_admin: number; created_at: num
 type Dataset = { id: string; name: string; url: string; description: string; status: string };
 
 function auth() {
-  return { headers: { Authorization: `Bearer ${getToken()}` } };
+  return { headers: { Authorization: `Bearer ` + getToken() } };
 }
 
 export default function AdminClient() {
@@ -23,6 +23,7 @@ export default function AdminClient() {
   const [hfToken, setHfToken] = useState('');
   const [train, setTrain] = useState({ name: '', base_model: '', dataset_id: '', notes: '' });
   const [msg, setMsg] = useState('');
+  const [shards, setShards] = useState(5);
 
   const load = useCallback(() => {
     const token = getToken();
@@ -69,6 +70,19 @@ export default function AdminClient() {
     const res = await fetch(`${API}/admin/hf`, { method: 'POST', ...auth(), headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ org: hfOrg, token: hfToken }) });
     if (res.ok) { setHfToken(''); load(); }
   };
+  const createJobs = async () => {
+    const slug = train.name.toLowerCase().replace(/ /g, '-');
+    if (!slug) return;
+    const res = await fetch(`${API}/admin/jobs/create`, {
+      method: 'POST', ...auth(), headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ run_slug: slug, base_model: train.base_model, dataset_url: train.dataset_id, shard_total: shards }),
+    });
+    const j = await res.json();
+    if (res.ok) setJobsStatus(`Created ${j.jobs.length} shard jobs for ${j.run}`);
+    else setJobsStatus(j.detail || 'failed');
+  };
+  const [jobsStatus, setJobsStatus] = useState('');
+
   const startTraining = async () => {
     if (!train.name.trim()) return;
     const res = await fetch(`${API}/admin/trainings`, { method: 'POST', ...auth(), headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(train) });
@@ -97,6 +111,29 @@ export default function AdminClient() {
         </div>
         <button onClick={startTraining} className="btn btn-primary mt-4">Launch run →</button>
         {msg ? <p className="mt-3 font-mono text-xs text-emerald-500">{msg}</p> : null}
+      </section>
+
+      {/* JOBS */}
+      <section className="mt-8 rounded-xl border border-[#161a1e] bg-[#07090b] p-6">
+        <h2 className="mb-1 text-lg font-medium text-[#f5f5f2]">Distribute jobs to workers</h2>
+        <p className="mb-4 text-xs text-[#555b61]">
+          Splits a run into N shards. Each online worker claims one shard, trains on its slice,
+          uploads results. Extra workers stay free or pick the next run&apos;s shards.
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <p className="mono-label mb-2">Run slug</p>
+            <input value={train.name ? train.name.toLowerCase().replace(/ /g, '-') : ''} readOnly
+              placeholder="set a run name above" className="w-64 rounded-lg border border-[#161a1e] bg-[#030405] px-4 py-2.5 font-mono text-xs text-[#f5f5f2] placeholder:text-[#555b61]" />
+          </div>
+          <div>
+            <p className="mono-label mb-2">Workers (shards)</p>
+            <input type="number" min={1} max={50} value={shards} onChange={(e) => setShards(parseInt(e.target.value) || 1)}
+              className="w-24 rounded-lg border border-[#161a1e] bg-[#030405] px-4 py-2.5 font-mono text-xs text-[#f5f5f2]" />
+          </div>
+          <button onClick={createJobs} className="btn btn-primary mt-5">Distribute →</button>
+        </div>
+        {jobsStatus ? <p className="mt-3 font-mono text-xs text-emerald-500">{jobsStatus}</p> : null}
       </section>
 
       {/* HF */}

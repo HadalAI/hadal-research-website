@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { fetchWorkers } from '@/lib/data';
 
-export const metadata = { title: 'Credits — Hadal Research' };
+export const metadata = { title: 'Credits' };
 
 export default async function CreditsPage() {
   const workers = await fetchWorkers();
