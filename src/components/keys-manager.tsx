@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { getToken } from '@/components/sign-in';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -15,7 +16,9 @@ export default function KeysManager() {
   const [copied, setCopied] = useState<string | null>(null);
 
   const load = useCallback(() => {
-    fetch(`${API}/account/keys`, { credentials: 'include' })
+    const token = getToken();
+    if (!token) return;
+    fetch(`${API}/account/keys`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then(setKeys)
       .catch(() => setKeys([]));
@@ -27,8 +30,7 @@ export default function KeysManager() {
     try {
       const res = await fetch(`${API}/account/keys`, {
         method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ label }),
       });
       if (res.ok) {
@@ -41,7 +43,10 @@ export default function KeysManager() {
   };
 
   const remove = async (key: string) => {
-    await fetch(`${API}/account/keys/${key}`, { method: 'DELETE', credentials: 'include' });
+    await fetch(`${API}/account/keys/${key}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${getToken()}` },
+    });
     load();
   };
 

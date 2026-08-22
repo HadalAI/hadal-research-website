@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import KeysManager from '@/components/keys-manager';
 import ActivityFeed from '@/components/activity-feed';
 import Link from 'next/link';
+import { getToken } from '@/components/sign-in';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -35,15 +36,22 @@ export default function DashboardClient() {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
-    fetch(`${API}/me`, { credentials: 'include' })
+    const token = getToken();
+    if (!token) {
+      setMe(null);
+      setLoading(false);
+      return;
+    }
+    const auth = { Authorization: `Bearer ${token}` };
+    fetch(`${API}/me`, { headers: auth })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((u) => {
         setMe(u);
-        return fetch(`${API}/account/key`, { method: 'POST', credentials: 'include' });
+        return fetch(`${API}/account/key`, { method: 'POST', headers: auth });
       })
       .then((r) => r.json())
       .then(({ api_key }) =>
-        fetch(`${API}/account/workers`, { headers: { 'X-Worker-Key': api_key }, credentials: 'include' })
+        fetch(`${API}/account/workers`, { headers: { 'X-Worker-Key': api_key } })
       )
       .then((r) => r.json())
       .then(setWorkers)
@@ -51,7 +59,20 @@ export default function DashboardClient() {
       .finally(() => setLoading(false));
     fetch(`${API}/stats`).then((r) => r.json()).then(setStats).catch(() => {});
   }, []);
-  useEffect(load, [load]);
+
+  useEffect(() => {
+    load();
+    // returning from OAuth: capture token from fragment then reload
+    if (window.location.hash.startsWith('#token=')) {
+      const token = window.location.hash.slice('#token='.length).split('&')[0];
+      if (token) {
+        localStorage.setItem('hadal_token', token);
+        history.replaceState(null, '', window.location.pathname);
+        setLoading(true);
+        setTimeout(load, 100);
+      }
+    }
+  }, [load]);
 
   if (loading) {
     return (
@@ -71,12 +92,6 @@ export default function DashboardClient() {
           Sign in with GitHub or Discord using the buttons top right — then this
           console opens: worker keys, linked machines, hours.
         </p>
-        <div className="mt-10 grid max-w-lg grid-cols-2 gap-px bg-[#161a1e] font-mono text-xs">
-          <div className="bg-[#07090b] px-5 py-4 text-[#8c9197]">MANAGE KEYS</div>
-          <div className="bg-[#07090b] px-5 py-4 text-[#8c9197]">LINK MACHINES</div>
-          <div className="bg-[#07090b] px-5 py-4 text-[#8c9197]">TRACK HOURS</div>
-          <div className="bg-[#07090b] px-5 py-4 text-[#8c9197]">LEADERBOARD</div>
-        </div>
       </main>
     );
   }
