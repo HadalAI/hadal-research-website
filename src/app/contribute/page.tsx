@@ -1,59 +1,60 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+
+const ways = [
+  {
+    icon: '💻',
+    title: 'Compute',
+    desc: 'Run the Hadal worker on your machine. It picks up verified research jobs in the background and banks GPU hours for every one it completes.',
+  },
+  {
+    icon: '📊',
+    title: 'Data',
+    desc: 'Contribute datasets and annotations that improve how community models learn.',
+  },
+  {
+    icon: '🧪',
+    title: 'Evaluation',
+    desc: 'Score model outputs. Independent evaluations from many machines are how results get verified.',
+  },
+];
 
 export default function ContributePage() {
-  const ways = [
-    {
-      icon: '💻',
-      title: 'Compute',
-      desc: 'Share your GPU power to train and evaluate models.',
-      href: '/contribute',
-    },
-    {
-      icon: '📊',
-      title: 'Data',
-      desc: 'Contribute datasets and annotations to improve model learning.',
-      href: '/contribute',
-    },
-    {
-      icon: '🧪',
-      title: 'Evaluation',
-      desc: 'Help evaluate model outputs and improve quality.',
-      href: '/contribute',
-    },
-  ];
   return (
-    <main className="min-h-screen bg-deep text-foreground font-sans">
-      <div className="container mx-auto px-4 py-16">
-        <h1 className="text-5xl font-bold mb-8 text-accent">
-          Contribute to Hadal Research
+    <main className="relative overflow-hidden">
+      <div className="glow-orb left-1/2 top-[-100px] h-[320px] w-[480px] -translate-x-1/2 bg-[#2a344a]/45" />
+      <section className="container relative mx-auto px-4 py-16">
+        <p className="font-mono text-xs uppercase tracking-widest text-[#6881a3]">Contribute</p>
+        <h1 className="gradient-text mt-3 max-w-2xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+          Put your hardware to work
         </h1>
-        <p className="text-muted mb-8">
-          Help build the future of AI by contributing your compute, data, or evaluation.
+        <p className="mt-4 max-w-lg text-sm leading-relaxed text-[#8b93a1]">
+          Three ways in — all open, all credited on the public leaderboard.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+
+        <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
           {ways.map((w) => (
-            <div key={w.title} className="bg-card rounded-lg p-6 text-center">
-              <div className="text-4xl text-accent mb-2">{w.icon}</div>
-              <h3 className="font-bold mb-2">{w.title}</h3>
-              <p className="text-muted text-sm mb-4">{w.desc}</p>
-              <Link href={w.href} className="text-accent hover:underline">
-                Learn how →
-              </Link>
+            <div key={w.title} className="glass rounded-2xl p-7">
+              <div className="text-2xl">{w.icon}</div>
+              <h3 className="mt-4 font-medium text-white">{w.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[#8b93a1]">{w.desc}</p>
             </div>
           ))}
         </div>
-        <div className="mt-12 pt-8 border-t border-surface/50">
-          <h2 className="text-2xl font-bold mb-4">Your Contribution Counts</h2>
-          <p className="text-muted mb-6">
-            Every contribution, whether GPU hours or evaluation feedback, helps
-            build better open AI models that benefit the entire community.
+
+        <div className="glass mt-12 rounded-2xl p-8 md:p-10">
+          <h2 className="text-xl font-medium text-white">Run the worker</h2>
+          <p className="mt-2 text-sm text-[#8b93a1]">
+            One command. Your GPU is detected automatically; nothing on your files is ever touched.
           </p>
-          <Button asChild href="/research">
-            <span>See Active Research</span>
-          </Button>
+          <div className="mt-5 flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 px-5 py-4 font-mono text-sm text-emerald-300">
+            <span className="select-none text-[#8b93a1]">$</span>
+            npx @hadal/worker
+          </div>
+          <p className="mt-3 text-xs text-[#8b93a1]">
+            Requires Node 18+. NVIDIA GPUs via nvidia-smi; CPU-only machines are welcome on eval jobs.
+          </p>
         </div>
-      </div>
+      </section>
     </main>
   );
 }

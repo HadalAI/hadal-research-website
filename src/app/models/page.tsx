@@ -1,46 +1,26 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-type Model = { id: string; name: string; description: string; status: string };
+import { LiveModels, Leaderboard } from '@/components/live';
 
 export default function ModelsPage() {
-  const [models, setModels] = useState<Model[] | null>(null);
-  const [err, setErr] = useState(false);
-  useEffect(() => {
-    fetch(`${API}/models`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then(setModels)
-      .catch(() => setErr(true));
-  }, []);
-
   return (
-    <main className="min-h-screen bg-deep text-foreground font-sans">
-      <div className="container mx-auto px-4 py-16">
-        <h1 className="text-5xl font-bold mb-8 text-accent">Model Releases</h1>
-        <p className="text-muted mb-8">
-          Model releases built with the Hadal community.
+    <main className="relative overflow-hidden">
+      <div className="glow-orb left-1/3 top-[-90px] h-[300px] w-[440px] bg-[#2a344a]/40" />
+      <section className="container relative mx-auto px-4 py-16">
+        <p className="font-mono text-xs uppercase tracking-widest text-[#6881a3]">Models</p>
+        <h1 className="gradient-text mt-3 text-4xl font-semibold tracking-tight md:text-5xl">
+          Releases
+        </h1>
+        <p className="mt-4 max-w-lg text-sm leading-relaxed text-[#8b93a1]">
+          Every release is built in the open — weights and datasets published on Hugging Face,
+          contributors named on the model card.
         </p>
-        {err ? (
-          <p className="text-muted">Model index temporarily unavailable.</p>
-        ) : !models ? (
-          <p className="text-muted">Loading…</p>
-        ) : models.length === 0 ? (
-          <p className="text-muted">No models released yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {models.map((m) => (
-              <div key={m.id} className="bg-card rounded-lg p-6">
-                <div className="text-3xl font-bold text-accent mb-2">{m.name}</div>
-                <p className="text-muted text-sm mb-3">{m.description}</p>
-                <span className="text-sm px-2 py-1 rounded bg-surface text-muted">{m.status}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+        <div className="mt-12">
+          <LiveModels />
+        </div>
+
+        <h2 className="mt-20 text-2xl font-medium tracking-tight text-white">Leaderboard</h2>
+        <p className="mb-8 mt-2 text-sm text-[#8b93a1]">Top contributors by verified GPU hours.</p>
+        <Leaderboard />
+      </section>
     </main>
   );
 }
