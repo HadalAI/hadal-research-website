@@ -155,7 +155,7 @@ export default async function HomePage() {
           <div className="rounded-xl border border-[#161a1e] bg-[#07090b] p-5">
             <h3 className="mb-2 text-sm font-medium text-[#f5f5f2]">Contribute Your Way</h3>
             <ul>
-              {CONTRIBUTE_WAYS.map(([icon, title, desc]) => (
+              {CONTRIBUTE_WAYS.map(([title, desc]) => (
                 <li key={title}>
                   <a
                     href="/contribute"
@@ -163,7 +163,7 @@ export default async function HomePage() {
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#161a1e] bg-[#030405]">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8c9197" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d={WAY_ICONS[icon]} />
+                        <path d={WAY_ICONS[title]} />
                       </svg>
                     </span>
                     <span className="min-w-0 flex-1">
