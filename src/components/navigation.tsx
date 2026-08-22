@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import Image from 'next/image';
+import SignIn from '@/components/sign-in';
 
 const links = [
   { href: '/research', label: 'Research' },
@@ -35,14 +36,7 @@ export default function Navigation() {
               {l.label}
             </Link>
           ))}
-          <a
-            href="https://github.com/kyssta-exe/hadal-worker"
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-ghost !px-4 !py-2"
-          >
-            Sign in
-          </a>
+          <SignIn />
         </nav>
 
         <button
