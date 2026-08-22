@@ -129,17 +129,22 @@ export default function DashboardClient() {
               </div>
             ) : (
               <div className="overflow-hidden rounded-xl border border-[#161a1e]">
-                {workers.map((w, i) => (
+                {workers.map((w, i) => {
+                  const online = w.last_seen != null && Date.now() / 1000 - w.last_seen < 300;
+                  const status = online ? (w.paused ? 'PAUSED' : 'CONTRIBUTING') : 'OFFLINE';
+                  const statusCls = status === 'CONTRIBUTING' ? 'text-emerald-500' : status === 'PAUSED' ? 'text-[#8c9197]' : 'text-red-500';
+                  return (
                   <div key={w.id} className={`grid grid-cols-2 items-center gap-4 bg-[#07090b] px-5 py-4 md:grid-cols-5 ${i > 0 ? 'border-t border-[#161a1e]' : ''}`}>
                     <span className="text-sm text-[#f5f5f2]">{w.name || w.id}</span>
                     <span className="font-mono text-xs text-[#8c9197]">{w.gpu}{w.vram ? ` · ${w.vram.toFixed(0)}GB` : ''}</span>
-                    <span className={`font-mono text-[11px] ${w.paused ? 'text-[#555b61]' : 'text-emerald-500'}`}>
-                      {w.paused ? 'PAUSED' : 'CONTRIBUTING'}
+                    <span className={`font-mono text-[11px] ${statusCls}`}>
+                      {status}
                     </span>
                     <span className="font-mono text-xs tabular text-[#8c9197]">{w.gpu_hours.toFixed(2)} H</span>
                     <span className="text-right font-mono text-[11px] text-[#555b61]">{fmtSeen(w.last_seen)}</span>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
