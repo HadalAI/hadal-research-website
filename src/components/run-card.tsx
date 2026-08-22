@@ -1,13 +1,17 @@
-'use client';
-
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import type { RunWithMeta } from '@/lib/data';
+
+const ICONS = {
+  users:
+    'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2',
+};
 
 function Stat({ icon, value, label }: { icon: string; value: string; label: string }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="text-[#555b61]">{icon}</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#555b61]">
+        <path d={icon} />
+      </svg>
       <span className="tabular text-sm font-medium text-[#f5f5f2]">{value}</span>
       <span className="text-xs text-[#555b61]">{label}</span>
     </div>
@@ -16,12 +20,6 @@ function Stat({ icon, value, label }: { icon: string; value: string; label: stri
 
 /** Research run card: ID chip + live dot, title, blurb, progress bar, metrics, deadline. */
 export default function RunCard({ run }: { run: RunWithMeta }) {
-  const [w, setW] = useState(0);
-  useEffect(() => {
-    const t = setTimeout(() => setW(run.progress), 150);
-    return () => clearTimeout(t);
-  }, [run.progress]);
-
   return (
     <div className="group flex h-full flex-col rounded-xl border border-[#161a1e] bg-[#07090b] p-6 transition-colors duration-300 hover:border-[#2a3037]">
       <div className="flex items-center justify-between">
@@ -38,14 +36,14 @@ export default function RunCard({ run }: { run: RunWithMeta }) {
         <div className="h-1 flex-1 overflow-hidden rounded-full bg-[#161a1e]">
           <div
             className="h-full rounded-full bg-gradient-to-r from-[#3d5a73] to-[#5b8fa8] transition-all duration-1000 ease-out"
-            style={{ width: `${w}%` }}
+            style={{ width: `${run.progress}%` }}
           />
         </div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 border-t border-[#161a1e]/70 pt-5">
-        <Stat icon="👥" value={run.contributors_count.toLocaleString()} label="Contributors" />
-        <Stat icon="🕐" value={Math.round(run.gpu_hours).toLocaleString()} label="GPU hours" />
+        <Stat icon={ICONS.users} value={run.contributors_count.toLocaleString()} label="Contributors" />
+        <Stat icon={ICONS.clock} value={Math.round(run.gpu_hours).toLocaleString()} label="GPU hours" />
       </div>
       <div className="mt-4 flex items-center gap-2 text-xs text-[#555b61]">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
