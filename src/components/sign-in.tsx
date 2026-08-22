@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 type User = { id: string; username: string; avatar_url: string; github_id: string | null; discord_id: string | null };
 
@@ -11,14 +11,24 @@ export default function SignIn() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const load = () => {
+  const load = useCallback(() => {
     fetch(`${API}/me`, { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then(setUser)
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
-  };
-  useEffect(load, []);
+  }, []);
+  useEffect(load, [load]);
+  // re-check auth when returning from OAuth redirect
+  useEffect(() => {
+    const onFocus = () => load();
+    window.addEventListener('focus', onFocus);
+    if (window.location.hash.includes('auth=ok')) {
+      history.replaceState(null, '', window.location.pathname);
+      setTimeout(load, 300);
+    }
+    return () => window.removeEventListener('focus', onFocus);
+  }, [load]);
 
   if (loading) return null;
 
