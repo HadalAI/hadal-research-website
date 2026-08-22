@@ -2,55 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg: #030405;
+  --surface: #07090b;
+  --surface-2: #0b0e11;
+  --border: #161a1e;
+  --text: #f5f5f2;
+  --text-2: #8c9197;
+  --text-3: #555b61;
+  --accent: #5b8fa8;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background-color: #05060c;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
+  font-feature-settings: 'ss01' on, 'cv01' on;
 }
 
-/* ambient blue glow orbs */
-.glow-orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(90px);
-  pointer-events: none;
+::selection {
+  background: rgba(91, 143, 168, 0.25);
 }
 
-/* faint dot grid */
-.dot-grid {
-  background-image: radial-gradient(circle, rgba(104, 129, 163, 0.14) 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%);
+/* monospace metadata label */
+.mono-label {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
 }
 
-/* frosted glass card */
-.glass {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(12px);
-  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-}
-.glass:hover {
-  border-color: rgba(104, 129, 163, 0.45);
-  box-shadow: 0 0 40px rgba(104, 129, 163, 0.12), inset 0 0 20px rgba(104, 129, 163, 0.04);
-  transform: translateY(-2px);
+/* thin dividing line */
+.hairline {
+  border-color: var(--border);
 }
 
-.gradient-text {
-  background: linear-gradient(180deg, #ffffff 30%, rgba(139, 147, 161, 0.75));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* rectangular buttons per brand — no pills */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 24px;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
-
 .btn-primary {
-  transition: all 0.25s ease;
-  box-shadow: 0 0 0 rgba(104, 129, 163, 0);
+  background: var(--text);
+  color: #030405;
 }
 .btn-primary:hover {
-  box-shadow: 0 0 32px rgba(104, 129, 163, 0.35);
+  background: #d9d9d4;
+}
+.btn-ghost {
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-ghost:hover {
+  border-color: var(--text-2);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* record row (research list, models) */
+.record {
+  transition: background 0.25s ease;
+}
+.record:hover {
+  background: var(--surface);
+}
+
+/* breathing status dot */
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.dot-live {
+  animation: breathe 2.4s ease-in-out infinite;
+}
+
+/* activity feed fade-in */
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+.fade-in {
+  animation: fadein 0.5s ease;
+}
+
+/* number count-up container */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .dot-live, .fade-in { animation: none; }
+  * { transition-duration: 0.01ms !important; }
 }

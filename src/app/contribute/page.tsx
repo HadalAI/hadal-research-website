@@ -2,59 +2,74 @@ import Link from 'next/link';
 
 const ways = [
   {
-    icon: '💻',
-    title: 'Compute',
-    desc: 'Run the Hadal worker on your machine. It picks up verified research jobs in the background and banks GPU hours for every one it completes.',
+    n: '01',
+    title: 'CONTRIBUTE COMPUTE',
+    desc: 'Run the Hadal Worker and contribute authorized GPU resources. Sandboxed jobs, your files untouched.',
+    cmd: 'npx @hadal/worker',
   },
   {
-    icon: '📊',
-    title: 'Data',
-    desc: 'Contribute datasets and annotations that improve how community models learn.',
+    n: '02',
+    title: 'CONTRIBUTE DATA',
+    desc: 'Help build better datasets — annotations, preference rankings, domain knowledge.',
+    cmd: null,
   },
   {
-    icon: '🧪',
-    title: 'Evaluation',
-    desc: 'Score model outputs. Independent evaluations from many machines are how results get verified.',
+    n: '03',
+    title: 'EVALUATE MODELS',
+    desc: 'Independent evaluations from many machines are how results get verified.',
+    cmd: null,
+  },
+  {
+    n: '04',
+    title: 'CONTRIBUTE RESEARCH',
+    desc: 'Submit experiments, ideas, methods, and discoveries to active runs.',
+    cmd: null,
   },
 ];
 
 export default function ContributePage() {
   return (
-    <main className="relative overflow-hidden">
-      <div className="glow-orb left-1/2 top-[-100px] h-[320px] w-[480px] -translate-x-1/2 bg-[#2a344a]/45" />
-      <section className="container relative mx-auto px-4 py-16">
-        <p className="font-mono text-xs uppercase tracking-widest text-[#6881a3]">Contribute</p>
-        <h1 className="gradient-text mt-3 max-w-2xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
-          Put your hardware to work
-        </h1>
-        <p className="mt-4 max-w-lg text-sm leading-relaxed text-[#8b93a1]">
-          Three ways in — all open, all credited on the public leaderboard.
-        </p>
+    <main className="mx-auto max-w-6xl px-6 pb-32">
+      <p className="mono-label pt-20">HADAL RESEARCH</p>
+      <h1 className="mt-6 max-w-2xl text-5xl font-semibold leading-tight tracking-tight md:text-6xl">
+        CONTRIBUTE TO THE DEPTH.
+      </h1>
+      <p className="mt-8 max-w-lg text-sm leading-relaxed text-[#8c9197]">
+        Hadal Research is built by people contributing what they can.
+        <br />
+        Choose how you want to participate.
+      </p>
 
-        <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {ways.map((w) => (
-            <div key={w.title} className="glass rounded-2xl p-7">
-              <div className="text-2xl">{w.icon}</div>
-              <h3 className="mt-4 font-medium text-white">{w.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[#8b93a1]">{w.desc}</p>
+      <div className="mt-24 space-y-px bg-[#161a1e]">
+        {ways.map((w) => (
+          <section key={w.n} className="record bg-[#030405] px-6 py-14 md:px-12">
+            <div className="grid gap-8 md:grid-cols-[4rem_1fr_auto] md:items-center">
+              <span className="font-mono text-sm text-[#555b61]">{w.n}</span>
+              <div>
+                <h2 className="font-mono text-xl tracking-widest text-[#f5f5f2]">{w.title}</h2>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#8c9197]">{w.desc}</p>
+                {w.cmd && (
+                  <div className="mt-6 inline-flex items-center gap-3 border border-[#161a1e] bg-[#07090b] px-5 py-3 font-mono text-sm text-emerald-500">
+                    <span className="select-none text-[#555b61]">$</span>
+                    {w.cmd}
+                  </div>
+                )}
+              </div>
+              <Link
+                href="/research"
+                className="btn btn-ghost whitespace-nowrap"
+              >
+                {w.title.includes('COMPUTE') ? 'Run worker →' : 'Learn more →'}
+              </Link>
             </div>
-          ))}
-        </div>
+          </section>
+        ))}
+      </div>
 
-        <div className="glass mt-12 rounded-2xl p-8 md:p-10">
-          <h2 className="text-xl font-medium text-white">Run the worker</h2>
-          <p className="mt-2 text-sm text-[#8b93a1]">
-            One command. Your GPU is detected automatically; nothing on your files is ever touched.
-          </p>
-          <div className="mt-5 flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 px-5 py-4 font-mono text-sm text-emerald-300">
-            <span className="select-none text-[#8b93a1]">$</span>
-            npx @hadal/worker
-          </div>
-          <p className="mt-3 text-xs text-[#8b93a1]">
-            Requires Node 18+. NVIDIA GPUs via nvidia-smi; CPU-only machines are welcome on eval jobs.
-          </p>
-        </div>
-      </section>
+      <p className="mt-16 font-mono text-xs leading-relaxed text-[#555b61]">
+        SAFETY / Jobs execute sandboxed. The worker never reads personal files.
+        Only hardware you own. Resource limits are yours to set.
+      </p>
     </main>
   );
 }

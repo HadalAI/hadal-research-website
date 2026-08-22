@@ -1,17 +1,23 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
+  content: ['./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        deep: "#05070a",
-        ocean: "#0e7490",
-        accent: "#0ea5e9",
-        muted: "#7e8994",
-        surface: "#1e293b",
-        card: "#2d3a4f",
-      }
+        bg: '#030405',
+        surface: '#07090b',
+        'surface-2': '#0b0e11',
+        line: '#161a1e',
+        ink: '#f5f5f2',
+        'ink-2': '#8c9197',
+        'ink-3': '#555b61',
+        accent: '#5b8fa8',
+      },
+      fontFamily: {
+        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
+      },
     },
   },
   plugins: [],
-}
+};
