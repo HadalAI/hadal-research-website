@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { fetchRunCards, fetchStats, fetchWorkers } from '@/lib/data';
+import { fetchRuns, fetchStats, fetchWorkers } from '@/lib/data';
 import GlobeField from '@/components/globe-field';
 import RunCard from '@/components/run-card';
 import ActivityFeed from '@/components/activity-feed';
@@ -48,7 +48,7 @@ function StatCell({ icon, value, label }: { icon: string; value: number; label: 
 export default async function HomePage() {
   const [stats, runs, workers] = await Promise.all([
     fetchStats(),
-    fetchRunCards(),
+    fetchRuns(),
     fetchWorkers(),
   ]);
   const shown = runs.slice(0, 3);

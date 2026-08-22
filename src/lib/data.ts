@@ -14,16 +14,11 @@ export type NetworkStats = {
   active_runs: number;
 };
 
-export type RunWithMeta = {
+export type ResearchRun = {
   slug: string;
   name: string;
   description: string;
   status: string;
-  /** Placeholder fields until the API serves per-run metrics. */
-  progress: number;
-  contributors_count: number;
-  gpu_hours: number;
-  ends_in_days: number;
 };
 
 /** Per-run display metadata — single source, replace with API fields when available. */
@@ -71,12 +66,8 @@ export function fetchStats(): Promise<NetworkStats> {
   });
 }
 
-export async function fetchRunCards(): Promise<RunWithMeta[]> {
-  const runs = await get<Array<{ slug: string; name: string; description: string; status: string }>>(
-    '/research-runs',
-    []
-  );
-  return runs.map((r) => ({ ...r, ...metaFor(r.slug) }));
+export async function fetchRuns(): Promise<ResearchRun[]> {
+  return get('/research-runs', []);
 }
 
 export async function fetchModels(): Promise<

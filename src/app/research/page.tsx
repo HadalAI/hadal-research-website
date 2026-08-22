@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { fetchRunCards, fetchStats } from '@/lib/data';
+import { fetchRuns, fetchStats } from '@/lib/data';
 
 export default async function ResearchPage() {
-  const [runs, stats] = await Promise.all([fetchRunCards(), fetchStats()]);
+  const [runs, stats] = await Promise.all([fetchRuns(), fetchStats()]);
   return (
     <main className="mx-auto max-w-6xl px-6 pb-32">
       <p className="mono-label pt-20">LAB ARCHIVE</p>
@@ -31,8 +31,6 @@ export default async function ResearchPage() {
               </div>
               <h2 className="mt-4 max-w-2xl text-xl font-medium text-[#c9cdd2] md:text-2xl">{run.name}</h2>
               <div className="mt-6 grid grid-cols-3 gap-6 font-mono text-xs text-[#555b61] md:max-w-xl">
-                <span>GPU HOURS / {Math.round(run.gpu_hours ?? stats.gpu_hours).toLocaleString()}</span>
-                <span>CONTRIBUTORS / {(run.contributors_count ?? stats.contributors).toLocaleString()}</span>
                 <span>STATUS / {run.status}</span>
               </div>
             </article>
