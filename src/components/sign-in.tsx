@@ -29,6 +29,9 @@ export default function SignIn() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={user.avatar_url} alt="" className="h-6 w-6 rounded-full" />
         ) : null}
+        <a href="/dashboard" className="rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-[#d9d9d4]">
+          Dashboard
+        </a>
         <span className="text-sm text-[#f5f5f2]">{user.username}</span>
         <button
           onClick={() =>

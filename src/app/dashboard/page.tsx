@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import KeysManager from '@/components/keys-manager';
 
 export const metadata = { title: 'Dashboard — Hadal Research' };
 
@@ -120,11 +121,17 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      <h2 className="mt-16 text-lg font-medium text-[#f5f5f2]">Worker Keys</h2>
+      <p className="mb-6 mt-2 text-xs text-[#555b61]">
+        One key per machine — revoke individually without touching the rest.
+      </p>
+      <KeysManager />
+
       <h2 className="mt-16 text-lg font-medium text-[#f5f5f2]">Link a new machine</h2>
       <div className="mt-4 space-y-3 rounded-xl border border-[#161a1e] bg-[#07090b] p-6 font-mono text-xs">
         <p><span className="text-[#555b61]">$</span> pip install hadal-worker</p>
         <p><span className="text-[#555b61]">$</span> hadal-worker</p>
-        <p className="text-[#8c9197]">Paste your worker key when asked. Keys rotate from this dashboard.</p>
+        <p className="text-[#8c9197]">Paste any of your worker keys when asked.</p>
       </div>
     </main>
   );
