@@ -46,7 +46,9 @@ export default async function ModelsPage() {
 async function ModelList() {
   const { fetchModels } = await import('@/lib/data');
   const models = await fetchModels();
-  if (models.length === 0) {
+  type M = { id: string; name: string; description: string; status: string; contributors?: number; gpu_hours?: number };
+  const list = models as M[];
+  if (list.length === 0) {
     return (
       <p className="py-24 text-sm text-[#555b61]">
         No releases yet — HADAL-1 is the first community build, in preparation.
@@ -55,15 +57,15 @@ async function ModelList() {
   }
   return (
     <div className="mt-20">
-      {models.map((m) => (
+      {list.map((m) => (
         <article key={m.id} className="record border-t hairline py-14 last:border-b">
           <div className="grid gap-10 md:grid-cols-[auto_1fr_auto] md:items-center">
             <span className="font-mono text-4xl tracking-tight text-[#f5f5f2] md:text-5xl">{m.name}</span>
             <div>
               <p className="mono-label">{m.description || 'COMMUNITY-BUILT LANGUAGE MODEL'}</p>
               <div className="mt-4 flex gap-8 font-mono text-xs text-[#555b61]">
-                {m.contributors ? <span>{m.contributors.toLocaleString()} CONTRIBUTORS</span> : null}
-                {m.gpu_hours ? <span>{Math.round(m.gpu_hours).toLocaleString()} GPU HOURS</span> : null}
+                {(m as M).contributors != null ? <span>{((m as M).contributors as number).toLocaleString()} CONTRIBUTORS</span> : null}
+                {(m as M).gpu_hours != null ? <span>{Math.round(((m as M).gpu_hours as number)).toLocaleString()} GPU HOURS</span> : null}
                 <span className={m.status === 'RELEASED' ? 'text-emerald-500' : 'text-[#8c9197]'}>
                   STATUS / {m.status}
                 </span>

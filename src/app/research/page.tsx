@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { fetchRuns, fetchStats } from '@/lib/data';
+import { fetchRunCards, fetchStats } from '@/lib/data';
 
 export default async function ResearchPage() {
-  const [runs, stats] = await Promise.all([fetchRuns(), fetchStats()]);
+  const [runs, stats] = await Promise.all([fetchRunCards(), fetchStats()]);
   return (
     <main className="mx-auto max-w-6xl px-6 pb-32">
       <p className="mono-label pt-20">LAB ARCHIVE</p>
