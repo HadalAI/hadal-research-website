@@ -12,6 +12,7 @@ const links = [
   { href: '/network', label: 'Network' },
   { href: '/contribute', label: 'Contribute' },
   { href: '/credits', label: 'Credits' },
+  { href: '/dashboard', label: 'Dashboard' },
 ];
 
 export default function Navigation() {
