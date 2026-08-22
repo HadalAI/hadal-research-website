@@ -5,7 +5,7 @@ const ways = [
     n: '01',
     title: 'CONTRIBUTE COMPUTE',
     desc: 'Run the Hadal Worker and contribute authorized GPU resources. Sandboxed jobs, your files untouched.',
-    cmd: 'npx @hadal/worker',
+    cmd: 'pip install hadal-worker && hadal-worker',
   },
   {
     n: '02',
