@@ -24,7 +24,7 @@ export default function SignIn() {
       setLoading(false);
       return;
     }
-    fetch(`${API}/me`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API}/me`, { headers: { Authorization: `Bearer ` + token } })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then(setUser)
       .catch(() => {
@@ -62,6 +62,7 @@ export default function SignIn() {
         <Link href="/dashboard" className="rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-black transition-colors hover:bg-[#d9d9d4]">
           Dashboard
         </Link>
+        <AdminLink />
         <button
           onClick={() => {
             fetch(`${API}/logout`, { method: 'POST' }).catch(() => {});
@@ -85,5 +86,23 @@ export default function SignIn() {
         Discord
       </a>
     </div>
+  );
+}
+
+function AdminLink() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    fetch(`${API}/admin/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((u) => setIsAdmin(!!u.is_admin))
+      .catch(() => setIsAdmin(false));
+  }, []);
+  if (!isAdmin) return null;
+  return (
+    <Link href="/admin" className="font-mono text-[11px] uppercase tracking-widest text-[#5b8fa8] transition-colors hover:text-white">
+      Admin
+    </Link>
   );
 }
