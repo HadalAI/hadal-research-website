@@ -57,7 +57,7 @@ export default async function HomePage() {
     <main>
       {/* HERO: split — copy left, globe + online card right */}
       <section className="relative overflow-hidden border-b hairline">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-16 pt-16 md:pt-20 lg:grid-cols-[1fr_420px]">
+        <div className="mx-auto grid max-w-6xl items-center gap-8 px-6 pb-16 pt-16 md:pt-20 lg:grid-cols-[1fr_560px]">
           <div>
             <span className="inline-flex items-center gap-2 rounded-md border border-[#161a1e] bg-[#07090b] px-3 py-1.5 font-mono text-[11px] tracking-widest text-[#8c9197]">
               <span className="dot-live h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -85,7 +85,7 @@ export default async function HomePage() {
           </div>
 
           <div className="relative hidden lg:block">
-            <GlobeField size={480} />
+            <GlobeField size={560} />
             <div className="absolute bottom-6 right-0 w-56 rounded-xl border border-[#161a1e] bg-[#07090b]/90 p-5 backdrop-blur-sm">
               <div className="flex items-center gap-2.5">
                 <span className="dot-live h-2 w-2 rounded-full bg-emerald-500" />
