@@ -1,175 +1,139 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { GLOBE_DATA } from '@/lib/globe-data';
+import createGlobe from 'cobe';
 
 /**
- * Point-cloud Earth: land dots from Natural Earth data (precomputed
- * coordinates), sparse ocean sparkles, atmospheric rim glow, animated
- * network arcs between hub cities, slow Y spin with northern tilt.
+ * WebGL Earth via cobe: real continent dots (16k samples), atmosphere glow,
+ * network arcs between hub cities, spring-damped drag rotation + idle spin.
  */
-type V3 = { x: number; y: number; z: number };
+const HUB_ARCS: { from: [number, number]; to: [number, number] }[] = [
+  { from: [37.77, -122.42], to: [40.71, -74.0] }, // SF - NYC
+  { from: [40.71, -74.0], to: [51.5, -0.12] }, // NYC - London
+  { from: [51.5, -0.12], to: [48.85, 2.35] }, // London - Paris
+  { from: [48.85, 2.35], to: [30.04, 31.24] }, // Paris - Cairo
+  { from: [35.68, 139.69], to: [1.35, 103.82] }, // Tokyo - Singapore
+  { from: [1.35, 103.82], to: [-33.87, 151.21] }, // Singapore - Sydney
+  { from: [-23.55, -46.63], to: [19.08, 72.88] }, // Sao Paulo - Mumbai
+  { from: [19.08, 72.88], to: [39.9, 116.4] }, // Mumbai - Beijing
+  { from: [30.04, 31.24], to: [-1.29, 36.82] }, // Cairo - Nairobi
+  { from: [-34.6, -58.38], to: [-23.55, -46.63] }, // Buenos Aires - Sao Paulo
+  { from: [25.2, 55.27], to: [30.04, 31.24] }, // Dubai - Cairo
+];
 
-function toSph(lat: number, lon: number): V3 {
-  const phi = ((90 - lat) * Math.PI) / 180;
-  const th = ((lon + 180) * Math.PI) / 180;
-  return {
-    x: Math.sin(phi) * Math.cos(th),
-    y: Math.cos(phi),
-    z: Math.sin(phi) * Math.sin(th),
-  };
-}
+const MARKERS = [
+  ...new Set(
+    HUB_ARCS.flatMap((a) => [a.from.join(','), a.to.join(',')]),
+  ),
+].map((loc) => ({
+  location: loc.split(',').map(Number) as [number, number],
+  size: 0.06,
+}));
 
 export default function GlobeField({ size = 520 }: { size?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const pointerInteracting = useRef<number | null>(null);
+  const pointerMovement = useRef(0);
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const maybeCtx = canvas.getContext('2d');
-    if (!maybeCtx) return;
-    const ctx: CanvasRenderingContext2D = maybeCtx;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let phi = 0.3;
+    let width = size;
 
-    // --- static geometry, built once ---
-    const landV = GLOBE_DATA.l.map(([lon, lat]) => ({
-      v: toSph(lat, lon),
-      sz: 0.7 + Math.random() * 0.5,
-      bright: false as boolean,
-    }));
-    // ~5% of land dots flare brighter
-    for (let i = 0; i < landV.length; i += 20) landV[i].bright = true;
+    const onResize = () => {
+      width = Math.min(canvas.offsetWidth, size);
+    };
+    window.addEventListener('resize', onResize);
 
-    // ocean sparkles: random unit-sphere points (not land-checked — they render dim)
-    const oceanV: { v: V3; sz: number }[] = [];
-    let guard = 0;
-    while (oceanV.length < 240 && guard++ < 4000) {
-      const v: V3 = {
-        x: Math.random() * 2 - 1,
-        y: Math.random() * 2 - 1,
-        z: Math.random() * 2 - 1,
-      };
-      const len = Math.hypot(v.x, v.y, v.z);
-      if (len < 0.1 || len > 1) continue;
-      v.x /= len; v.y /= len; v.z /= len;
-      oceanV.push({ v, sz: 0.4 + Math.random() * 0.4 });
-    }
-
-    const hubs: V3[] = GLOBE_DATA.h.map(([la, lo]) => toSph(la, lo));
+    const opts = {
+      devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      width: size * 2,
+      height: size * 2,
+      phi,
+      theta: 0.22,
+      dark: 1,
+      diffuse: 2.2,
+      mapSamples: 20000,
+      mapBrightness: 9,
+      mapBaseBrightness: 0.06,
+      baseColor: [0.09, 0.14, 0.22] as [number, number, number],
+      markerColor: [0.62, 0.9, 1] as [number, number, number],
+      glowColor: [0.16, 0.45, 0.8] as [number, number, number],
+      markers: MARKERS,
+      arcs: HUB_ARCS,
+      arcColor: [0.45, 0.78, 1] as [number, number, number],
+      arcWidth: 0.25,
+      arcHeight: 0.22,
+      opacity: 1,
+    };
+    const globe = createGlobe(canvas, opts);
 
     let raf = 0;
-    let rotY = 0;
-    const TILT = -0.35; // lean back to show the northern hemisphere
+    const tick = () => {
+      if (!pointerInteracting.current) phi += 0.0025;
+      globe.update({
+        phi: phi + pointerMovement.current / 4000,
+        width: width * 2,
+        height: width * 2,
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    tick();
 
-    const draw = () => {
-      const s = Math.min(canvas.offsetWidth, size);
-      const cx = s / 2;
-      const cy = s / 2;
-      const R = s / 2 - 10;
-      ctx.clearRect(0, 0, s, s);
-
-      const sinT = Math.sin(TILT), cosT = Math.cos(TILT);
-      const sinY = Math.sin(rotY), cosY = Math.cos(rotY);
-      const project = (v: V3) => {
-        const x1 = v.x * cosY + v.z * sinY;
-        const z1 = -v.x * sinY + v.z * cosY;
-        const y2 = v.y * cosT - z1 * sinT;
-        const z2 = v.y * sinT + z1 * cosT;
-        return { px: cx + x1 * R, py: cy - y2 * R, z: z2 };
-      };
-
-      // --- atmosphere rim glow ---
-      const grad = ctx.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 1.25);
-      grad.addColorStop(0, 'rgba(56,189,248,0.30)');
-      grad.addColorStop(0.45, 'rgba(56,189,248,0.10)');
-      grad.addColorStop(1, 'rgba(56,189,248,0)');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, R * 1.25, 0, 7);
-      ctx.fill();
-
-      // sphere fill so back-side dots don't bleed through
-      ctx.fillStyle = 'rgba(7,10,15,0.6)';
-      ctx.beginPath();
-      ctx.arc(cx, cy, R, 0, 7);
-      ctx.fill();
-
-      // --- ocean sparkles (dim) ---
-      for (const p of oceanV) {
-        const pr = project(p.v);
-        if (pr.z <= 0.02) continue;
-        ctx.fillStyle = `rgba(70,110,150,${0.05 + pr.z * 0.18})`;
-        ctx.beginPath();
-        ctx.arc(pr.px, pr.py, p.sz, 0, 7);
-        ctx.fill();
-      }
-
-      // --- land dots ---
-      for (const p of landV) {
-        const pr = project(p.v);
-        if (pr.z <= 0.02) continue;
-        const a = 0.12 + pr.z * 0.65;
-        ctx.fillStyle = p.bright ? `rgba(147,197,253,${a})` : `rgba(56,149,232,${a})`;
-        ctx.beginPath();
-        ctx.arc(pr.px, pr.py, p.sz + pr.z * 0.5, 0, 7);
-        ctx.fill();
-      }
-
-      // --- hub nodes + network arcs between visible hubs ---
-      type Proj = ReturnType<typeof project>;
-      const hp: (Proj | null)[] = hubs.map(project);
-      for (let i = 0; i < hp.length; i++) {
-        if (!hp[i] || hp[i]!.z <= 0.05) continue;
-        for (let j = i + 1; j < hp.length; j++) {
-          if (!hp[j] || hp[j]!.z <= 0.05) continue;
-          const a = hp[i]!, b = hp[j]!;
-          const mx = (a.px + b.px) / 2;
-          const my = (a.py + b.py) / 2;
-          // lift midpoint off the sphere toward the viewer
-          const dx = mx - cx, dy = my - cy;
-          const dl = Math.hypot(dx, dy) || 1;
-          const lift = R * (0.18 + 0.22 * (1 - dl / R));
-          const qx = mx + (dx / dl) * lift;
-          const qy = my + (dy / dl) * lift;
-          const t = (Math.sin(performance.now() / 900 + i + j) + 1) / 2; // pulse phase
-          ctx.strokeStyle = `rgba(125,211,252,${0.05 + t * 0.13})`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(a.px, a.py);
-          ctx.quadraticCurveTo(qx, qy, b.px, b.py);
-          ctx.stroke();
-        }
-      }
-      // bright hub points on top of arcs
-      for (const h of hp) {
-        if (!h || h.z <= 0.05) continue;
-        ctx.fillStyle = `rgba(186,230,253,${0.4 + h.z * 0.55})`;
-        ctx.beginPath();
-        ctx.arc(h.px, h.py, 1.8, 0, 7);
-        ctx.fill();
-      }
-
-      if (!reduced) {
-        rotY += 0.0016;
-        raf = requestAnimationFrame(draw);
+    const onPointerDown = (e: PointerEvent) => {
+      pointerInteracting.current = e.clientX - pointerMovement.current;
+      canvas.style.cursor = 'grabbing';
+    };
+    const onPointerUp = () => {
+      pointerInteracting.current = null;
+      canvas.style.cursor = 'grab';
+    };
+    const onPointerOut = () => {
+      pointerInteracting.current = null;
+      canvas.style.cursor = 'grab';
+    };
+    const onMouseMove = (e: MouseEvent) => {
+      if (pointerInteracting.current !== null) {
+        pointerMovement.current = e.clientX - pointerInteracting.current;
       }
     };
-    draw();
+    const onTouchMove = (e: TouchEvent) => {
+      if (pointerInteracting.current !== null && e.touches[0]) {
+        pointerMovement.current = e.touches[0].clientX - pointerInteracting.current;
+      }
+    };
 
-    const onResize = () => draw();
-    window.addEventListener('resize', onResize);
+    canvas.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointerout', onPointerOut);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('touchmove', onTouchMove);
+    canvas.style.cursor = 'grab';
+
     return () => {
       cancelAnimationFrame(raf);
+      globe.destroy();
       window.removeEventListener('resize', onResize);
+      canvas.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointerout', onPointerOut);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('touchmove', onTouchMove);
     };
   }, [size]);
 
   return (
     <canvas
       ref={ref}
-      style={{ width: size, height: size, maxWidth: '100%' }}
+      style={{
+        width: size,
+        height: size,
+        maxWidth: '100%',
+        aspectRatio: '1',
+        contain: 'layout paint size',
+      }}
       aria-hidden="true"
     />
   );
