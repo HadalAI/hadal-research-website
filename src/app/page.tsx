@@ -82,14 +82,6 @@ export default async function HomePage() {
                 Explore Research
               </Link>
             </div>
-            <p className="mt-10 flex items-center gap-2 font-mono text-xs text-[#555b61]">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="#5b8fa8">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              How it works
-              <span className="ml-4">·</span>
-              <span className="ml-2">○ Watch 2 min demo</span>
-            </p>
           </div>
 
           <div className="relative hidden lg:block">
