@@ -70,11 +70,15 @@ export default function GlobeField({ size = 520 }: { size?: number }) {
     };
     const globe = createGlobe(canvas, opts);
 
+    // spring-smoothed rotation: target follows drag, current lerps toward it each frame
     let raf = 0;
+    let currentPhi = phi;
     const tick = () => {
       if (!pointerInteracting.current) phi += 0.0025;
+      const target = phi + pointerMovement.current / 4000;
+      currentPhi += (target - currentPhi) * 0.06; // lerp factor = smoothness
       globe.update({
-        phi: phi + pointerMovement.current / 4000,
+        phi: currentPhi,
         width: width * 2,
         height: width * 2,
       });
