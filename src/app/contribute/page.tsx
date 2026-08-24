@@ -5,9 +5,14 @@ const ways = [
   {
     n: '01',
     title: 'CONTRIBUTE COMPUTE',
-    desc: 'Run the Hadal Worker and contribute authorized GPU resources. Sandboxed jobs, your files untouched.',
+    desc: 'Run the Hadal Worker and contribute authorized GPU resources. Sandboxed jobs, your files untouched. Use Colab or Kaggle without installing anything locally.',
     cmd: 'pip install hadal-worker && hadal-worker',
     cta: 'Run worker →',
+    notebooks: [
+      { href: 'https://github.com/HadalAI/hadal-notebooks/releases/latest', label: 'Download notebooks' },
+      { href: 'https://colab.research.google.com/github/HadalAI/hadal-notebooks/blob/main/notebooks/hadal_worker_colab.ipynb', label: 'Open in Colab' },
+      { href: 'https://github.com/HadalAI/hadal-notebooks/blob/main/notebooks/hadal_worker_kaggle.ipynb', label: 'Open in Kaggle' },
+    ],
   },
   {
     n: '02',
@@ -78,13 +83,29 @@ export default function ContributePage() {
                 </div>
               )}
               {!w.datasetForm && w.cta && (
-                <Link
-                  href={w.href ?? '/research'}
-                  {...(w.href ? { target: '_blank', rel: 'noreferrer' } : {})}
-                  className="btn btn-ghost whitespace-nowrap"
-                >
-                  {w.cta}
-                </Link>
+                <div className="flex flex-wrap items-center gap-3">
+                  {w.notebooks
+                    ? w.notebooks.map((nb) => (
+                        <Link
+                          key={nb.href}
+                          href={nb.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-ghost whitespace-nowrap"
+                        >
+                          {nb.label}
+                        </Link>
+                      ))
+                    : (
+                      <Link
+                        href={w.href ?? '/research'}
+                        {...(w.href ? { target: '_blank', rel: 'noreferrer' } : {})}
+                        className="btn btn-ghost whitespace-nowrap"
+                      >
+                        {w.cta}
+                      </Link>
+                    )}
+                </div>
               )}
             </div>
           </section>
