@@ -84,7 +84,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative hidden lg:block">
+          <div className="relative mx-auto -mb-8 mt-4 w-full max-w-[340px] lg:mb-0 lg:mt-0 lg:w-auto lg:max-w-none">
             <GlobeField size={560} />
           </div>
         </div>
