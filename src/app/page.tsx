@@ -59,9 +59,9 @@ export default async function HomePage() {
       <section className="relative overflow-hidden border-b hairline">
         <div className="mx-auto grid max-w-6xl items-center gap-8 px-6 pb-16 pt-16 md:pt-20 lg:grid-cols-[1fr_560px]">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-md border border-[#161a1e] bg-[#07090b] px-3 py-1.5 font-mono text-[11px] tracking-widest text-[#8c9197]">
-              <span className="dot-live h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              COMMUNITY-DRIVEN AI RESEARCH LAB
+            <span className="inline-flex items-center gap-2 rounded-md border border-sky-400/30 bg-[#062033] px-3 py-1.5 font-mono text-[11px] tracking-widest text-sky-300">
+              <span className="dot-live h-1.5 w-1.5 rounded-full bg-sky-400" />
+              FIRST TRAINING RUN — SEPT 1
             </span>
             <h1 className="mt-7 text-5xl font-semibold leading-[1.04] tracking-tight md:text-[64px]">
               Intelligence,
