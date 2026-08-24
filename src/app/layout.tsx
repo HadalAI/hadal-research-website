@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Navigation from '@/components/navigation';
+import AnnouncementBar from '@/components/announcement-bar';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import './globals.css';
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="min-h-screen bg-[#030405] font-sans text-[#f5f5f2] antialiased">
+        <AnnouncementBar />
         <Navigation />
         {children}
         <footer className="border-t hairline py-12">
