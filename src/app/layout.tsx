@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="flex items-center gap-5 font-mono text-xs text-[#555b61]">
               <a href="/privacy" className="transition-colors hover:text-[#f5f5f2]">Privacy</a>
               <a href="/terms" className="transition-colors hover:text-[#f5f5f2]">Terms</a>
-              <a href="https://github.com/HadalAI" target="_blank" rel="noreferrer" className="transition-colors hover:text-[#f5f5f2]">GitHub</a>
+              <a href="https://github.com/HadalAI" target="_blank" rel="noreferrer" title="github.com/HadalAI — open source under Apache-2.0" className="transition-colors hover:text-[#f5f5f2]">GitHub</a>
               <span>open source · Apache-2.0 · © {new Date().getFullYear()}</span>
             </nav>
           </div>

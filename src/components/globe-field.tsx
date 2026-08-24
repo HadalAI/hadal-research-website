@@ -34,12 +34,14 @@ export default function GlobeField({ size = 520 }: { size?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const pointerInteracting = useRef<number | null>(null);
   const pointerMovement = useRef(0);
+  const pointerMovementY = useRef(0);
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
 
     let phi = 0.3;
+    let theta = 0.22;
     let width = size;
 
     const onResize = () => {
@@ -70,15 +72,21 @@ export default function GlobeField({ size = 520 }: { size?: number }) {
     };
     const globe = createGlobe(canvas, opts);
 
-    // spring-smoothed rotation: target follows drag, current lerps toward it each frame
+    // spring-smoothed rotation on both axes: targets follow drag, currents lerp each frame
     let raf = 0;
     let currentPhi = phi;
+    let currentTheta = theta;
     const tick = () => {
       if (!pointerInteracting.current) phi += 0.0025;
-      const target = phi + pointerMovement.current / 4000;
-      currentPhi += (target - currentPhi) * 0.06; // lerp factor = smoothness
+      const targetPhi = phi + pointerMovement.current / 4000;
+      // clamp so the globe can't flip over the poles
+      const rawTheta = theta - pointerMovementY.current / 3000;
+      const targetTheta = Math.max(-1.2, Math.min(1.35, rawTheta));
+      currentPhi += (targetPhi - currentPhi) * 0.06;
+      currentTheta += (targetTheta - currentTheta) * 0.06;
       globe.update({
         phi: currentPhi,
+        theta: currentTheta,
         width: width * 2,
         height: width * 2,
       });
@@ -86,8 +94,10 @@ export default function GlobeField({ size = 520 }: { size?: number }) {
     };
     tick();
 
+    const dragStartY = { v: 0 };
     const onPointerDown = (e: PointerEvent) => {
       pointerInteracting.current = e.clientX - pointerMovement.current;
+      dragStartY.v = e.clientY - pointerMovementY.current;
       canvas.style.cursor = 'grabbing';
     };
     const onPointerUp = () => {
@@ -101,11 +111,13 @@ export default function GlobeField({ size = 520 }: { size?: number }) {
     const onMouseMove = (e: MouseEvent) => {
       if (pointerInteracting.current !== null) {
         pointerMovement.current = e.clientX - pointerInteracting.current;
+        pointerMovementY.current = e.clientY - dragStartY.v;
       }
     };
     const onTouchMove = (e: TouchEvent) => {
       if (pointerInteracting.current !== null && e.touches[0]) {
         pointerMovement.current = e.touches[0].clientX - pointerInteracting.current;
+        pointerMovementY.current = e.touches[0].clientY - dragStartY.v;
       }
     };
 
