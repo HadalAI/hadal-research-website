@@ -45,7 +45,7 @@ export default function ContributePage() {
 
       <div className="mt-10 rounded-xl border border-sky-400/25 bg-[#062033]/60 px-5 py-4">
         <p className="font-mono text-xs leading-relaxed text-[#c7d6e4]">
-          <b className="text-sky-300">First training run starts September 1.</b> Set up
+          <b className="text-sky-300">First training run starts this September.</b> Set up
           your worker now — online machines get the first shards automatically.{' '}
           <span className="text-[#555b61]">pip install hadal-worker</span>
         </p>

@@ -17,7 +17,7 @@ export default async function NetworkPage() {
         </p>
         <div className="mt-8 max-w-lg rounded-xl border border-sky-400/25 bg-[#062033]/60 px-5 py-4">
           <p className="font-mono text-xs leading-relaxed text-[#c7d6e4]">
-            <b className="text-sky-300">First training run: September 1.</b> Every
+            <b className="text-sky-300">First training run: this September.</b> Every
             machine online that day takes part.{' '}
             <Link href="/contribute" className="text-[#7dd3fc] underline-offset-2 hover:underline">
               Connect yours →

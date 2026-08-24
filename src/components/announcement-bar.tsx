@@ -10,7 +10,7 @@ export default function AnnouncementBar() {
           <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-400" />
         </span>
         <span className="text-[#dbe4ec]">
-          <b className="font-semibold text-white">First training run starts September 1</b>
+          <b className="font-semibold text-white">First training run starts this September</b>
           <span> — connect your GPU and be part of it.</span>
         </span>
         <Link

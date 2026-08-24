@@ -61,7 +61,7 @@ export default async function HomePage() {
           <div>
             <span className="inline-flex items-center gap-2 rounded-md border border-sky-400/30 bg-[#062033] px-3 py-1.5 font-mono text-[11px] tracking-widest text-sky-300">
               <span className="dot-live h-1.5 w-1.5 rounded-full bg-sky-400" />
-              FIRST TRAINING RUN — SEPT 1
+              FIRST TRAINING RUN — SEPTEMBER
             </span>
             <h1 className="mt-7 text-5xl font-semibold leading-[1.04] tracking-tight md:text-[64px]">
               Intelligence,
