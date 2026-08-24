@@ -86,23 +86,6 @@ export default async function HomePage() {
 
           <div className="relative hidden lg:block">
             <GlobeField size={560} />
-            <div className="absolute bottom-6 right-0 w-56 rounded-xl border border-[#161a1e] bg-[#07090b]/90 p-5 backdrop-blur-sm">
-              <div className="flex items-center gap-2.5">
-                <span className="dot-live h-2 w-2 rounded-full bg-emerald-500" />
-                <span className="tabular font-mono text-sm text-[#f5f5f2]">
-                  {stats.workers_online} workers online
-                </span>
-              </div>
-              <p className="mt-1.5 pl-[18px] text-xs text-[#555b61]">Across the open network</p>
-              <div className="mt-4 flex h-10 items-end gap-1 pl-[18px]" aria-hidden="true">
-                {[35, 55, 40, 70, 50, 80, 45, 65, 90, 60, 75, 85].map((h, i) => (
-                  <span key={i} className="w-1 rounded-sm bg-[#31465c]" style={{ height: `${h}%` }} />
-                ))}
-              </div>
-              <a href="/network" className="mt-4 inline-flex items-center justify-between pl-[18px] text-xs text-[#5b8fa8] hover:text-[#8cb6cc]">
-                View the network <span>→</span>
-              </a>
-            </div>
           </div>
         </div>
       </section>
