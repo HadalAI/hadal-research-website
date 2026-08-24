@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import KeysManager from '@/components/keys-manager';
 import ActivityFeed from '@/components/activity-feed';
+import MyDatasets from '@/components/my-datasets';
 import Link from 'next/link';
 import { getToken } from '@/components/sign-in';
 
@@ -163,6 +164,8 @@ export default function DashboardClient() {
               <p className="text-[#8c9197]">Paste any active key when prompted.</p>
             </div>
           </section>
+
+          <MyDatasets />
         </div>
 
         <aside className="space-y-6">

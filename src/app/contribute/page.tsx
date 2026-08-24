@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import DatasetContribute from '@/components/dataset-contribute';
 
 const ways = [
   {
@@ -6,24 +7,26 @@ const ways = [
     title: 'CONTRIBUTE COMPUTE',
     desc: 'Run the Hadal Worker and contribute authorized GPU resources. Sandboxed jobs, your files untouched.',
     cmd: 'pip install hadal-worker && hadal-worker',
+    cta: 'Run worker →',
   },
   {
     n: '02',
     title: 'CONTRIBUTE DATA',
-    desc: 'Help build better datasets — annotations, preference rankings, domain knowledge.',
-    cmd: null,
+    desc: 'Submit datasets for the shared shelf — annotations, preference rankings, domain knowledge. Reviewed before approval, then used by training runs.',
+    datasetForm: true,
   },
   {
     n: '03',
     title: 'EVALUATE MODELS',
-    desc: 'Independent evaluations from many machines are how results get verified.',
-    cmd: null,
+    desc: 'Independent evaluations from many machines are how results get verified. Eval shards are distributed to workers automatically with every run.',
+    cta: 'See runs →',
   },
   {
     n: '04',
     title: 'CONTRIBUTE RESEARCH',
-    desc: 'Submit experiments, ideas, methods, and discoveries to active runs.',
-    cmd: null,
+    desc: 'Submit experiments, ideas, methods, and discoveries to active runs — or open an issue in any HadalAI repo.',
+    cta: 'GitHub ↗',
+    href: 'https://github.com/HadalAI',
   },
 ];
 
@@ -43,24 +46,38 @@ export default function ContributePage() {
       <div className="mt-24 space-y-px bg-[#161a1e]">
         {ways.map((w) => (
           <section key={w.n} className="record bg-[#030405] px-6 py-14 md:px-12">
-            <div className="grid gap-8 md:grid-cols-[4rem_1fr_auto] md:items-center">
-              <span className="font-mono text-sm text-[#555b61]">{w.n}</span>
-              <div>
-                <h2 className="font-mono text-xl tracking-widest text-[#f5f5f2]">{w.title}</h2>
-                <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#8c9197]">{w.desc}</p>
-                {w.cmd && (
-                  <div className="mt-6 inline-flex items-center gap-3 border border-[#161a1e] bg-[#07090b] px-5 py-3 font-mono text-sm text-emerald-500">
-                    <span className="select-none text-[#555b61]">$</span>
-                    {w.cmd}
+            <div className={`grid gap-8 ${w.datasetForm ? '' : 'md:grid-cols-[4rem_1fr_auto] md:items-center'}`}>
+              {!w.datasetForm && <span className="font-mono text-sm text-[#555b61]">{w.n}</span>}
+              {w.datasetForm ? (
+                <>
+                  <span className="font-mono text-sm text-[#555b61]">{w.n}</span>
+                  <div>
+                    <h2 className="font-mono text-xl tracking-widest text-[#f5f5f2]">{w.title}</h2>
+                    <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#8c9197]">{w.desc}</p>
+                    <DatasetContribute />
                   </div>
-                )}
-              </div>
-              <Link
-                href="/research"
-                className="btn btn-ghost whitespace-nowrap"
-              >
-                {w.title.includes('COMPUTE') ? 'Run worker →' : 'Learn more →'}
-              </Link>
+                </>
+              ) : (
+                <div>
+                  <h2 className="font-mono text-xl tracking-widest text-[#f5f5f2]">{w.title}</h2>
+                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#8c9197]">{w.desc}</p>
+                  {w.cmd && (
+                    <div className="mt-6 inline-flex items-center gap-3 border border-[#161a1e] bg-[#07090b] px-5 py-3 font-mono text-sm text-emerald-500">
+                      <span className="select-none text-[#555b61]">$</span>
+                      {w.cmd}
+                    </div>
+                  )}
+                </div>
+              )}
+              {!w.datasetForm && w.cta && (
+                <Link
+                  href={w.href ?? '/research'}
+                  {...(w.href ? { target: '_blank', rel: 'noreferrer' } : {})}
+                  className="btn btn-ghost whitespace-nowrap"
+                >
+                  {w.cta}
+                </Link>
+              )}
             </div>
           </section>
         ))}
