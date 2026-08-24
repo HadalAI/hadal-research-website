@@ -55,6 +55,7 @@ export default function AdminClient() {
   const [hfToken, setHfToken] = useState('');
   const [train, setTrain] = useState({ name: '', base_model: '', dataset_id: '', notes: '' });
   const [msg, setMsg] = useState('');
+  const [hfErr, setHfErr] = useState('');
   const [shards, setShards] = useState(5);
   const [progress, setProgress] = useState<Record<string, RunProgress>>({});
   const [busy, setBusy] = useState('');
@@ -159,6 +160,7 @@ export default function AdminClient() {
   };
   const connectHf = async () => {
     setBusy('hf');
+    setHfErr('');
     const res = await fetch(`${API}/admin/hf`, {
       method: 'POST',
       ...auth(),
@@ -168,7 +170,14 @@ export default function AdminClient() {
     setBusy('');
     if (res.ok) {
       setHfToken('');
-      load();
+      // re-read connected state immediately so the badge flips without a reload
+      fetch(`${API}/admin/hf`, auth()).then((r) => r.json()).then(setHf).catch(() => {});
+    } else {
+      try {
+        setHfErr((await res.json()).detail || 'Connection failed');
+      } catch {
+        setHfErr(`Connection failed (${res.status})`);
+      }
     }
   };
   const createJobs = async () => {
@@ -265,9 +274,10 @@ export default function AdminClient() {
             <input value={hfOrg} onChange={(e) => setHfOrg(e.target.value)} placeholder="Org (hadal-research)" className={inputCls} />
             <input value={hfToken} onChange={(e) => setHfToken(e.target.value)} placeholder="Write token (hf_...)" type="password" className={inputCls} />
           </div>
-          <button onClick={connectHf} disabled={busy === 'hf'} className="btn btn-ghost mt-4 w-full sm:w-auto disabled:opacity-50">
-            Connect
+          <button onClick={connectHf} disabled={busy === 'hf' || !hfOrg || !hfToken} className="btn btn-ghost mt-4 w-full sm:w-auto disabled:opacity-50">
+            {busy === 'hf' ? 'Validating…' : 'Connect'}
           </button>
+          {hfErr ? <p className="mt-3 font-mono text-xs text-red-500">{hfErr}</p> : null}
         </Card>
       </div>
 
