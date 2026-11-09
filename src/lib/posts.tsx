@@ -35,9 +35,11 @@ function Table({
   caption: string;
 }) {
   return (
-    <figure className="mt-8">
+    <figure className={`mt-8 ${head.length > 3 ? 'lg:-mx-16 xl:-mx-24' : ''}`}>
       <div className="overflow-x-auto border-t hairline">
-        <table className="w-full min-w-[720px] border-collapse text-left">
+        <table
+          className={`w-full border-collapse text-left ${head.length > 3 ? 'min-w-[640px]' : 'min-w-[300px]'}`}
+        >
           <thead>
             <tr className="border-b hairline">
               {head.map((h) => (
@@ -163,17 +165,17 @@ Question: What item is at the 5th position from the end?         →  R`}
         <Table
           head={['cell', '2×2', 'fwd %', 'bwd %', 'Δ pp', '95% CI', 'exact p', 'verdict']}
           rows={[
-            ['qwen15 · L=9 · seed 71 · forced', '[[4,0],[8,12]]', '50', '17', '−33.3', '[−51.2, −11.6]', '0.00781', 'reduction, margin not cleared'],
-            ['qwen15 · L=9 · seed 71 · generate', '[[4,0],[8,12]]', '50', '17', '−33.3', '[−51.2, −11.6]', '0.00781', 'reduction, margin not cleared'],
-            ['qwen15 · L=9 · seed 101 · forced', '[[4,0],[9,11]]', '54', '17', '−37.5', '[−55.2, −14.8]', '0.00391', 'reduction, margin not cleared'],
-            ['qwen15 · L=7 · seed 101 · forced', '[[2,0],[6,16]]', '33', '8', '−25.0', '[−44.3, −5.0]', '0.03125', 'reduction, margin not cleared'],
-            ['qwen15 · L=11 · seed 101 · forced', '[[2,2],[3,17]]', '21', '17', '−4.2', '[−24.5, +16.3]', '1.00000', 'no reduction detected'],
-            ['qwen15 · L=9 · seed 101 · word ordinal', '[[3,6],[2,13]]', '21', '38', '+16.7', '[−7.2, +38.2]', '0.28906', 'no reduction detected'],
-            ['qwen15 · L=9 · seed 101 · counting', '[[0,3],[3,18]]', '12', '12', '0.0', '[−21.3, +21.3]', '1.00000', 'no headroom'],
-            ['qwen05 · L=9 · seed 101 · forced', '[[0,3],[0,21]]', '0', '12', '+12.5', '[−3.5, +31.0]', '0.25000', 'no headroom'],
-            ['qwen05 · L=7 · seed 101 · forced', '[[0,2],[0,22]]', '0', '8', '+8.3', '[−6.7, +25.8]', '0.50000', 'no headroom'],
+            ['L=9 · 71 · forced', '[[4,0],[8,12]]', '50', '17', '−33.3', '[−51.2, −11.6]', '0.00781', 'margin not cleared'],
+            ['L=9 · 71 · generate', '[[4,0],[8,12]]', '50', '17', '−33.3', '[−51.2, −11.6]', '0.00781', 'margin not cleared'],
+            ['L=9 · 101 · forced', '[[4,0],[9,11]]', '54', '17', '−37.5', '[−55.2, −14.8]', '0.00391', 'margin not cleared'],
+            ['L=7 · 101 · forced', '[[2,0],[6,16]]', '33', '8', '−25.0', '[−44.3, −5.0]', '0.03125', 'margin not cleared'],
+            ['L=11 · 101 · forced', '[[2,2],[3,17]]', '21', '17', '−4.2', '[−24.5, +16.3]', '1.00000', 'no reduction'],
+            ['L=9 · 101 · word ordinal', '[[3,6],[2,13]]', '21', '38', '+16.7', '[−7.2, +38.2]', '0.28906', 'no reduction'],
+            ['L=9 · 101 · counting', '[[0,3],[3,18]]', '12', '12', '0.0', '[−21.3, +21.3]', '1.00000', 'no headroom'],
+            ['qwen05 · L=9 · 101', '[[0,3],[0,21]]', '0', '12', '+12.5', '[−3.5, +31.0]', '0.25000', 'no headroom'],
+            ['qwen05 · L=7 · 101', '[[0,2],[0,22]]', '0', '8', '+8.3', '[−6.7, +25.8]', '0.50000', 'no headroom'],
           ]}
-          caption="Full grid, v6. Intervals are Newcombe method 10 with the n/2 covariance correction. A cell whose forward accuracy is below 15% has no headroom and is not evidence either way."
+          caption="Full grid, v6; cells without a model prefix are Qwen2.5-1.5B-Instruct. Intervals are Newcombe method 10 with the n/2 covariance correction. “Margin not cleared” means the interval excludes zero but its upper end sits above the −15 pp practical margin. A cell whose forward accuracy is below 15% has no headroom and is not evidence either way."
         />
 
         <h2 className={H2}>What the data supports — and what it does not</h2>
