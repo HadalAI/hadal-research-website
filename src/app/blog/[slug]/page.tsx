@@ -35,7 +35,7 @@ export default async function BlogPost({ params }: Props) {
           <span className="px-2 text-rule">/</span> {post.readingTime}
         </p>
 
-        <h1 className="mt-6 font-serif text-[clamp(32px,4.6vw,44px)] font-normal leading-[1.1] tracking-[-0.02em]">
+        <h1 className="mt-6 text-balance font-serif text-[clamp(32px,4.6vw,44px)] font-normal leading-[1.08] tracking-[-0.02em]">
           {post.title}
         </h1>
 

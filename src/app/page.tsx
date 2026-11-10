@@ -40,10 +40,10 @@ export default function HomePage() {
         <div className="mx-auto grid max-w-page gap-14 px-6 pb-16 pt-16 md:px-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
             <p className="mono-label rise">Independent research lab</p>
-            <h1 className="rise rise-1 mt-7 font-serif text-[clamp(48px,8.4vw,96px)] font-normal leading-[0.92] tracking-[-0.03em]">
+            <h1 className="rise rise-1 mt-7 font-sans text-[clamp(48px,8.4vw,96px)] font-medium leading-[0.94] tracking-[-0.035em]">
               Research,
               <br />
-              <em className="inline-block text-muted transition-transform duration-500 ease-out hover:translate-y-[0.06em]">at depth.</em>
+              <em className="inline-block font-serif font-normal italic text-[#4f4a41] transition-transform duration-500 ease-out hover:translate-y-[0.06em]">at depth.</em>
             </h1>
             <p className="rise rise-2 mt-9 max-w-[44ch] font-serif text-[19px] leading-[1.55] text-muted">
               Hadal Research is a small lab studying hybrid language models — how attention,
@@ -83,7 +83,7 @@ export default function HomePage() {
                   <span className="block font-serif text-[26px] leading-tight transition-colors group-hover:text-accent">
                     {c.title}
                   </span>
-                  <span className="mt-1.5 block max-w-[52ch] font-serif text-[15px] leading-relaxed text-muted">
+                  <span className="mt-1.5 block max-w-[56ch] text-pretty font-serif text-[15px] leading-relaxed text-muted">
                     {c.note}
                   </span>
                 </span>

@@ -27,7 +27,7 @@ export default function Navigation() {
             <Link
               key={l.href}
               href={l.href}
-              className={`mono-label -my-1 py-1 transition-colors hover:text-ink ${
+              className={`mono-label -my-1 py-1 !tracking-[0.07em] font-medium transition-colors hover:text-ink ${
                 isCurrent(l.href) ? 'text-ink' : ''
               }`}
             >
@@ -38,7 +38,7 @@ export default function Navigation() {
             href="https://github.com/HadalAI"
             target="_blank"
             rel="noreferrer"
-            className="mono-label -my-1 py-1 transition-colors hover:text-ink"
+            className="mono-label -my-1 py-1 !tracking-[0.07em] font-medium transition-colors hover:text-ink"
             aria-label="HadalAI on GitHub"
           >
             GitHub ↗

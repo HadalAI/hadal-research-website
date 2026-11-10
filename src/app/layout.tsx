@@ -1,16 +1,29 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Navigation from '@/components/navigation';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
-import { Newsreader } from 'next/font/google';
+import { IBM_Plex_Sans, IBM_Plex_Serif, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 
-const serif = Newsreader({
+const sans = IBM_Plex_Sans({
   subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-plex-sans',
+});
+
+const serif = IBM_Plex_Serif({
+  subsets: ['latin'],
+  weight: ['400', '500'],
   style: ['normal', 'italic'],
   display: 'swap',
-  variable: '--font-newsreader',
+  variable: '--font-plex-serif',
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  display: 'swap',
+  variable: '--font-plex-mono',
 });
 
 export const metadata: Metadata = {
@@ -24,7 +37,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} ${serif.variable}`}>
+    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
       <body className="min-h-screen bg-paper font-serif text-ink antialiased">
         <div className="border-b border-rule">
           <div className="mx-auto flex max-w-page items-baseline justify-between gap-8 px-6 py-3 md:px-10">
@@ -72,7 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div>
                 <p className="mono-label">Colophon</p>
                 <p className="mt-4 font-serif text-[15px] leading-relaxed text-muted">
-                  Set in Newsreader and Geist Mono. Site source Apache-2.0; papers CC BY 4.0.
+                  Set in IBM Plex Sans, Serif and Mono. Site source Apache-2.0; papers CC BY 4.0.
                 </p>
                 <p className="mono-label mt-5">
                   <a

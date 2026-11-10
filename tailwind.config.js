@@ -12,13 +12,13 @@ module.exports = {
         accent: '#8a3324',
       },
       fontFamily: {
-        serif: ['var(--font-newsreader)', 'Iowan Old Style', 'Georgia', 'serif'],
-        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
+        serif: ['var(--font-plex-serif)', 'Iowan Old Style', 'Georgia', 'serif'],
+        sans: ['var(--font-plex-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-plex-mono)', 'ui-monospace', 'monospace'],
       },
       maxWidth: {
         page: '1120px',
-        measure: '68ch',
+        measure: '64ch',
       },
     },
   },

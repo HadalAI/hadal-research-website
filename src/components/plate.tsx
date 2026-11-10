@@ -333,7 +333,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
       </div>
       <figcaption className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="mono-label">
-          <span className="mark">Plate I</span> — landmass · drag / hover
+          <span className="mark">Plate I</span> · landmass, drag or hover
         </span>
         <button
           type="button"

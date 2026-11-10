@@ -25,7 +25,7 @@ export default function ComputePage() {
       <header className="grid gap-10 border-b border-rule py-14 md:grid-cols-[1fr_260px] md:items-end">
         <div>
           <p className="mono-label">Section 05</p>
-          <h1 className="mt-5 font-serif text-[clamp(40px,6vw,64px)] font-normal leading-[0.95] tracking-[-0.02em]">
+          <h1 className="mt-5 font-sans text-[clamp(40px,6vw,64px)] font-medium leading-[0.96] tracking-[-0.03em]">
             Compute
           </h1>
           <p className="mt-6 max-w-[52ch] font-serif text-[18px] leading-[1.55] text-muted">
