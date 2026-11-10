@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GLOBE_DATA } from '@/lib/globe-data';
+import { CHALLENGER } from '@/lib/depth-store';
 
 /**
  * Plate I — a lit point-cloud earth you can handle.
@@ -12,7 +13,7 @@ import { GLOBE_DATA } from '@/lib/globe-data';
  */
 
 type Vec = { x: number; y: number; z: number };
-type Pin = { lat: number; lon: number };
+type Pin = { lat: number; lon: number; label?: string };
 type Cell = [number, number];
 
 const D2R = Math.PI / 180;
@@ -60,6 +61,9 @@ export default function Plate({ size = 420 }: { size?: number }) {
   const [spin, setSpin] = useState(true);
   const [pins, setPins] = useState<Pin[]>([]);
   const [zoomLabel, setZoomLabel] = useState('1.0×');
+  const [idle, setIdle] = useState(false);
+  const idleRef = useRef(false);
+  const lastInput = useRef(Date.now());
 
   const reset = useCallback(() => {
     const v = view.current;
@@ -118,7 +122,13 @@ export default function Plate({ size = 420 }: { size?: number }) {
       const R = w * 0.42 * v.zoom;
       const d = 3.1;
 
-      v.lon += v.vlon + (v.spin && !v.drag && !reduced ? 0.045 : 0);
+      const quiet = Date.now() - lastInput.current > 80000;
+      if (quiet !== idleRef.current) {
+        idleRef.current = quiet;
+        setIdle(quiet);
+      }
+
+      v.lon += v.vlon + (v.spin && !v.drag && !reduced && !quiet ? 0.045 : 0);
       v.lat += v.vlat;
       v.vlon *= 0.94;
       v.vlat *= 0.9;
@@ -269,8 +279,18 @@ export default function Plate({ size = 420 }: { size?: number }) {
         ctx.fill();
 
         ctx.font = '9px ui-monospace, monospace';
+        const tx = q.x + ux * 14 + 6;
+        const ty = q.y + uy * 14 - 4;
+        if (pin.label) {
+          const tw = ctx.measureText(pin.label).width;
+          ctx.fillStyle = 'rgba(246,243,236,0.94)';
+          ctx.fillRect(tx - 3, ty - 8, tw + 6, 11);
+          ctx.strokeStyle = 'rgba(138,51,36,0.35)';
+          ctx.lineWidth = 0.6;
+          ctx.strokeRect(tx - 3, ty - 8, tw + 6, 11);
+        }
         ctx.fillStyle = '#8a3324';
-        ctx.fillText(String(i + 1), q.x + ux * 14 + 6, q.y + uy * 14 - 4);
+        ctx.fillText(pin.label ?? String(i + 1), tx, ty);
       });
 
       const hv = v.hover;
@@ -352,7 +372,12 @@ export default function Plate({ size = 420 }: { size?: number }) {
       return { lat, lon };
     };
 
+    const wake = () => {
+      lastInput.current = Date.now();
+    };
+
     const down = (e: PointerEvent) => {
+      wake();
       const { x, y } = local(e);
       v.drag = true;
       v.lastX = x;
@@ -362,6 +387,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
     };
 
     const move = (e: PointerEvent) => {
+      wake();
       const { x, y } = local(e);
       v.hover = { x, y };
       if (!v.drag) return;
@@ -383,7 +409,9 @@ export default function Plate({ size = 420 }: { size?: number }) {
       const { x, y } = local(e);
       const pin = unpin(x, y);
       if (!pin) return;
-      v.pins = [...v.pins, pin].slice(-5);
+      const near =
+        Math.abs(pin.lat - CHALLENGER.lat) < 1.4 && Math.abs(pin.lon - CHALLENGER.lon) < 1.6;
+      v.pins = [...v.pins, near ? { ...pin, label: 'CHALLENGER DEEP · 10,911 m' } : pin].slice(-5);
       setPins(v.pins);
     };
 
@@ -394,6 +422,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
     const wheel = (e: WheelEvent) => {
       e.preventDefault();
+      wake();
       v.zoom = Math.max(0.65, Math.min(2.1, v.zoom * (e.deltaY > 0 ? 0.94 : 1.06)));
       setZoomLabel(`${v.zoom.toFixed(1)}×`);
     };
@@ -420,6 +449,15 @@ export default function Plate({ size = 420 }: { size?: number }) {
       e.preventDefault();
     };
 
+    const word = () => {
+      const pin = { ...CHALLENGER, label: 'CHALLENGER DEEP · 10,911 m' };
+      v.pins = [...v.pins, pin].slice(-5);
+      setPins(v.pins);
+      wake();
+    };
+
+    document.addEventListener('hadal:challenger', word);
+
     canvas.style.cursor = 'grab';
     canvas.style.touchAction = 'none';
     canvas.addEventListener('pointerdown', down);
@@ -440,6 +478,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
       canvas.removeEventListener('wheel', wheel);
       canvas.removeEventListener('dblclick', dbl);
       canvas.removeEventListener('keydown', key);
+      document.removeEventListener('hadal:challenger', word);
     };
   }, [reset, toggleSpin]);
 
@@ -467,7 +506,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
       <figcaption className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="mono-label">
-          <span className="mark">Plate I</span> · drag, wheel, click to pin
+          <span className="mark">Plate I</span> · {idle ? 'no signal' : 'drag, wheel, click to pin'}
         </span>
         <span className="mono-label flex flex-wrap gap-x-4 gap-y-1">
           <button

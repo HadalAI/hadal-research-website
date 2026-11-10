@@ -18,7 +18,7 @@ export default function Navigation() {
   return (
     <header className="border-b border-accent/35">
       <div className="mx-auto flex max-w-page flex-wrap items-baseline justify-between gap-x-8 gap-y-3 px-6 py-6 md:px-10">
-        <Link href="/" className="font-serif text-[26px] leading-none tracking-[-0.01em]">
+        <Link href="/" id="wordmark" className="font-serif text-[26px] leading-none tracking-[-0.01em]">
           Hadal<span className="text-accent">.</span>
         </Link>
 
