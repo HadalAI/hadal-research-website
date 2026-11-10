@@ -54,15 +54,17 @@ export default function Sounding() {
       }
     };
 
-    // three clicks on the masthead label, inside 1200 ms
-    let clicks: number[] = [];
+    // three clicks on the masthead label, no more than 900 ms apart
+    let streak = 0;
+    let last = 0;
     const onWordmark = (e: Event) => {
       const el = (e.target as HTMLElement).closest('#imprint-mark');
       if (!el) return;
       const now = performance.now();
-      clicks = [...clicks.filter((t) => now - t < 1200), now];
-      if (clicks.length >= 3) {
-        clicks = [];
+      streak = now - last < 900 ? streak + 1 : 1;
+      last = now;
+      if (streak >= 3) {
+        streak = 0;
         show('COLOPHON', 'Set in IBM Plex · printed at 10,911 m');
       }
     };
