@@ -45,11 +45,12 @@ export default function RunningHead() {
   const section = SECTIONS[key] ?? { n: '—', label: 'Hadal' };
 
   return (
-    <p className="mono-label tabular hidden sm:flex items-baseline gap-2">
-      <span className="mark">§ {section.n}</span>
+    <p className="mono-label tabular hidden sm:flex items-baseline gap-2 text-muted">
+      <span className="text-accent">§</span>
+      <span className="text-ink">{section.n}</span>
       <span>{section.label}</span>
-      <span className="text-rule">/</span>
-      <span>{pct}%</span>
+      <span className="text-rule">·</span>
+      <span className="text-ink">{pct}%</span>
     </p>
   );
 }
