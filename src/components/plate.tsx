@@ -4,248 +4,308 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GLOBE_DATA } from '@/lib/globe-data';
 
 /**
- * Plate I — a halftone landmass you can handle.
+ * Plate I — a lit point-cloud earth you can handle.
  *
- * The landmask is projected orthographically, splatted onto a 5 px cell grid and
- * printed through an ordered threshold. Hover it to read the coordinate under the
- * pointer; click the caption to change the screen (4×4, 8×8, random) and the plate
- * re-prints itself. Drag to turn it. Ink on paper, no WebGL.
+ * Perspective projection, lambert shading and a shaded sphere body give it depth
+ * on paper. Drag to turn, wheel to zoom, click to pin a coordinate, arrows to
+ * steer, r to reset, space to stop the spin.
  */
 
+type Vec = { x: number; y: number; z: number };
+type Pin = { lat: number; lon: number };
 type Cell = [number, number];
 
-function buildBayer(size: number): number[][] {
-  let m = [[0]];
-  while (m.length < size) {
-    const n = m.length;
-    const next: number[][] = Array.from({ length: n * 2 }, () => Array(n * 2).fill(0));
-    for (let y = 0; y < n; y++) {
-      for (let x = 0; x < n; x++) {
-        const v = m[y][x] * 4;
-        next[y][x] = v;
-        next[y][x + n] = v + 2;
-        next[y + n][x] = v + 3;
-        next[y + n][x + n] = v + 1;
-      }
-    }
-    m = next;
-  }
-  return m;
+const D2R = Math.PI / 180;
+
+function toVec(lon: number, lat: number): Vec {
+  const cl = Math.cos(lat * D2R);
+  return { x: cl * Math.cos(lon * D2R), y: Math.sin(lat * D2R), z: cl * Math.sin(lon * D2R) };
 }
 
-const MODES = [
-  { id: 'bayer4', label: 'Screen: ordered 4×4', size: 4 },
-  { id: 'bayer8', label: 'Screen: ordered 8×8', size: 8 },
-  { id: 'noise', label: 'Screen: random', size: 4 },
-] as const;
+const LAND: Vec[] = (GLOBE_DATA.l as Cell[]).map(([lon, lat]) => toVec(lon, lat));
 
-type ModeId = (typeof MODES)[number]['id'];
+function rotate(v: Vec, lon: number, lat: number): Vec {
+  const cy = Math.cos(lon * D2R);
+  const sy = Math.sin(lon * D2R);
+  const cp = Math.cos(lat * D2R);
+  const sp = Math.sin(lat * D2R);
+  const x1 = v.x * cy + v.z * sy;
+  const z1 = -v.x * sy + v.z * cy;
+  return { x: x1, y: v.y * cp - z1 * sp, z: v.y * sp + z1 * cp };
+}
+
+function fmt(v: number, pos: string, neg: string) {
+  return `${Math.abs(v).toFixed(1)}°${v >= 0 ? pos : neg}`;
+}
 
 export default function Plate({ size = 420 }: { size?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drag = useRef({ active: false, lastX: 0, lastY: 0, moved: false });
-  const motion = useRef({ yaw: -0.55, pitch: 0.3, vy: 0, vp: 0 });
-  const hover = useRef<{ x: number; y: number } | null>(null);
-  const tilt = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
-  const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const printStart = useRef(0);
-  const [mode, setMode] = useState<ModeId>('bayer4');
-  const [coord, setCoord] = useState<string | null>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
 
-  const cycle = useCallback(() => {
-    setMode((m) => {
-      const i = MODES.findIndex((x) => x.id === m);
-      return MODES[(i + 1) % MODES.length].id;
-    });
-    printStart.current = performance.now();
+  const view = useRef({
+    lon: -28,
+    lat: 18,
+    zoom: 1,
+    vlon: 0,
+    vlat: 0,
+    spin: true,
+    drag: false,
+    lastX: 0,
+    lastY: 0,
+    hover: null as { x: number; y: number } | null,
+    pins: [] as Pin[],
+  });
+
+  const [coord, setCoord] = useState<string | null>(null);
+  const [spin, setSpin] = useState(true);
+  const [pins, setPins] = useState<Pin[]>([]);
+  const [zoomLabel, setZoomLabel] = useState('1.0×');
+
+  const reset = useCallback(() => {
+    const v = view.current;
+    v.lon = -28;
+    v.lat = 18;
+    v.zoom = 1;
+    v.vlon = 0;
+    v.vlat = 0;
+    setZoomLabel('1.0×');
+  }, []);
+
+  const toggleSpin = useCallback(() => {
+    const v = view.current;
+    v.spin = !v.spin;
+    setSpin(v.spin);
+  }, []);
+
+  const clearPins = useCallback(() => {
+    view.current.pins = [];
+    setPins([]);
   }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const shell = shellRef.current;
+    if (!canvas || !shell) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    printStart.current = performance.now();
-    const cell = 5;
-    const points = (GLOBE_DATA.l as Cell[]).map(([lonDeg, latDeg]) => {
-      const lon = (lonDeg * Math.PI) / 180;
-      const lat = (latDeg * Math.PI) / 180;
-      const cl = Math.cos(lat);
-      return { x: cl * Math.cos(lon), y: Math.sin(lat), z: cl * Math.sin(lon) };
-    });
-
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const spec = MODES.find((m) => m.id === mode) ?? MODES[0];
-    const matrix = spec.id === 'noise' ? null : buildBayer(spec.size);
-    const levels = spec.size * spec.size;
+    const v = view.current;
 
     let raf = 0;
-    let css = size;
-    let cols = 0;
-    let rows = 0;
-    let counts = new Float32Array(0);
-    let shade = new Float32Array(0);
+    let w = size;
+    let h = size;
 
     const resize = () => {
-      const host = canvas.parentElement;
-      let avail = size;
-      if (host) {
-        const cs = getComputedStyle(host);
-        avail =
-          host.clientWidth - parseFloat(cs.paddingLeft || '0') - parseFloat(cs.paddingRight || '0');
-      }
-      css = Math.max(160, Math.min(avail || size, size));
-      canvas.width = Math.round(css * dpr);
-      canvas.height = Math.round(css * dpr);
-      canvas.style.width = `${css}px`;
-      canvas.style.height = `${css}px`;
+      const cs = getComputedStyle(shell);
+      const avail =
+        shell.clientWidth - parseFloat(cs.paddingLeft || '0') - parseFloat(cs.paddingRight || '0');
+      w = Math.max(180, Math.min(avail || size, size));
+      h = w;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      cols = Math.ceil(css / cell) + 1;
-      rows = cols;
-      counts = new Float32Array(cols * rows);
-      shade = new Float32Array(cols * rows);
     };
     resize();
 
-    const R = () => css * 0.43;
-
-    const draw = (t: number) => {
+    const draw = () => {
       raf = requestAnimationFrame(draw);
-      const m = motion.current;
-      if (!reduced && !drag.current.active) {
-        m.yaw += 0.0011 + m.vy;
-        m.pitch += m.vp;
-        m.vy *= 0.94;
-        m.vp *= 0.9;
-      }
-      m.pitch = Math.max(-0.6, Math.min(0.6, m.pitch));
+      const cx = w / 2;
+      const cy = h / 2;
+      const R = w * 0.42 * v.zoom;
+      const d = 3.1;
 
-      const s = css;
-      const cx = s / 2;
-      const cy = s / 2;
-      const rad = R();
+      v.lon += v.vlon + (v.spin && !v.drag && !reduced ? 0.045 : 0);
+      v.lat += v.vlat;
+      v.vlon *= 0.94;
+      v.vlat *= 0.9;
+      v.lat = Math.max(-78, Math.min(78, v.lat));
 
-      // the plate leans toward the pointer, so it reads as an object before
-      // anyone thinks to drag it
-      const tl = tilt.current;
-      tl.x += (tl.tx - tl.x) * 0.08;
-      tl.y += (tl.ty - tl.y) * 0.08;
-      const yaw = m.yaw + tl.x;
-      const pitch = Math.max(-0.75, Math.min(0.75, m.pitch + tl.y));
+      ctx.clearRect(0, 0, w, h);
 
-      const cosY = Math.cos(yaw);
-      const sinY = Math.sin(yaw);
-      const cosP = Math.cos(pitch);
-      const sinP = Math.sin(pitch);
-
-      counts.fill(0);
-      shade.fill(0);
-      let max = 1;
-
-      for (let i = 0; i < points.length; i++) {
-        const p = points[i];
-        const x1 = p.x * cosY + p.z * sinY;
-        const z1 = -p.x * sinY + p.z * cosY;
-        const y2 = p.y * cosP - z1 * sinP;
-        const z2 = p.y * sinP + z1 * cosP;
-        if (z2 < -0.06) continue;
-
-        const gx = Math.floor((cx + rad * x1) / cell);
-        const gy = Math.floor((cy - rad * y2) / cell);
-        if (gx < 1 || gy < 1 || gx >= cols - 1 || gy >= rows - 1) continue;
-
-        const depth = 0.34 + 0.66 * ((z2 + 1) / 2);
-        const idx = gy * cols + gx;
-        for (let oy = -1; oy <= 1; oy++) {
-          for (let ox = -1; ox <= 1; ox++) {
-            const w = Math.exp(-(ox * ox + oy * oy) / 1.6);
-            const j = idx + oy * cols + ox;
-            counts[j] += w;
-            shade[j] += w * depth;
-          }
-        }
-        if (counts[idx] > max) max = counts[idx];
-      }
-
-      ctx.clearRect(0, 0, s, s);
-
-      // the plate prints itself in, once per screen
-      const reveal = reduced ? 1 : Math.min(1, (t - printStart.current) / 820);
-      const maxLog = Math.log(1 + max);
-
-      for (let gy = 1; gy < rows - 1; gy++) {
-        for (let gx = 1; gx < cols - 1; gx++) {
-          const idx = gy * cols + gx;
-          const c = counts[idx];
-          if (c < 0.02) continue;
-
-          // diagonal sweep: cells appear in reading order as the plate prints
-          const order = (gx / cols + gy / rows) / 2;
-          if (reveal < order) continue;
-
-          const coverage = Math.log(1 + c) / maxLog;
-          const level = coverage * (shade[idx] / c);
-
-          let threshold: number;
-          if (matrix) {
-            threshold = (matrix[gy % spec.size][gx % spec.size] + 0.5) / levels;
-          } else {
-            const h = Math.sin(gx * 127.1 + gy * 311.7) * 43758.5453;
-            threshold = h - Math.floor(h);
-          }
-          if (level <= threshold * 0.7) continue;
-
-          const alpha = Math.min(0.92, 0.3 + level * 0.72);
-          ctx.fillStyle = `rgba(23,23,26,${alpha})`;
-          ctx.fillRect(Math.round(gx * cell), Math.round(gy * cell), cell - 1.4, cell - 1.4);
-        }
-      }
-
-      // registration rule, drawn over the screen so it never breaks up
+      // contact shadow on the paper
+      ctx.save();
+      ctx.translate(cx, cy + R * 1.02);
+      ctx.scale(1, 0.13);
+      const sh = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R * 1.02);
+      sh.addColorStop(0, 'rgba(23,23,26,0.16)');
+      sh.addColorStop(1, 'rgba(23,23,26,0)');
+      ctx.fillStyle = sh;
       ctx.beginPath();
-      ctx.arc(cx, cy, rad + 1, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(23,23,26,0.30)';
+      ctx.arc(0, 0, R * 1.02, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      const body = ctx.createRadialGradient(cx - R * 0.34, cy - R * 0.42, R * 0.05, cx, cy, R * 1.08);
+      body.addColorStop(0, '#fbf9f3');
+      body.addColorStop(0.55, '#efeade');
+      body.addColorStop(0.72, '#ece7da');
+      body.addColorStop(1, '#cdc6b2');
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = body;
+      ctx.fill();
+
+      // nothing on the sphere may spill past the limb
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.clip();
+
+      const project = (p: Vec) => {
+        const k = d / (d - p.z);
+        return { x: cx + R * p.x * k, y: cy - R * p.y * k, z: p.z };
+      };
+
+      // graticule
+      ctx.lineWidth = 0.8;
+      for (let m = 0; m < 12; m++) {
+        const lon = m * 30;
+        for (let s = -84; s < 84; s += 4) {
+          const a = project(rotate(toVec(lon, s), v.lon, v.lat));
+          const b = project(rotate(toVec(lon, s + 4), v.lon, v.lat));
+          if (a.z < -0.15 || b.z < -0.15) continue;
+          const sideFade = 1 - 0.6 * Math.max(0, Math.min(1, (a.x - cx) / R + 0.45));
+          const alpha = (0.03 + Math.max(0, (a.z + 0.15) / 1.15) * 0.11) * sideFade;
+          ctx.strokeStyle = `rgba(23,23,26,${alpha})`;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+      for (let p = -75; p <= 75; p += 15) {
+        for (let s = 0; s < 360; s += 4) {
+          const a = project(rotate(toVec(s, p), v.lon, v.lat));
+          const b = project(rotate(toVec(s + 4, p), v.lon, v.lat));
+          if (a.z < -0.15 || b.z < -0.15) continue;
+          const sideFade = 1 - 0.6 * Math.max(0, Math.min(1, (a.x - cx) / R + 0.45));
+          const alpha = (0.03 + Math.max(0, (a.z + 0.15) / 1.15) * 0.1) * sideFade;
+          ctx.strokeStyle = `rgba(23,23,26,${alpha})`;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+
+      // land: dots sized and lit by the facet normal
+      const L = { x: -0.42, y: 0.5, z: 0.76 };
+      for (let i = 0; i < LAND.length; i++) {
+        const r = rotate(LAND[i], v.lon, v.lat);
+        if (r.z < -0.25) continue;
+        const q = project(r);
+        const lambert = Math.max(0, r.x * L.x + r.y * L.y + r.z * L.z);
+        const lit = 0.16 + Math.pow(lambert, 1.5) * 0.84;
+        const depth = Math.max(0, (r.z + 0.25) / 1.25);
+        const radius = 0.5 + Math.pow(lit, 1.15) * 1.15 * depth;
+        ctx.fillStyle = `rgba(23,23,26,${(0.07 + Math.pow(lit, 1.35) * 0.85 * depth).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(q.x, q.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // terminator: the far side of the sphere falls away
+      const term = ctx.createRadialGradient(cx - R * 0.45, cy - R * 0.5, R * 0.15, cx, cy, R * 1.02);
+      term.addColorStop(0, 'rgba(255,255,255,0)');
+      term.addColorStop(0.5, 'rgba(23,23,26,0.03)');
+      term.addColorStop(0.8, 'rgba(23,23,26,0.14)');
+      term.addColorStop(1, 'rgba(23,23,26,0.4)');
+      ctx.fillStyle = term;
+      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+
+      const glow = ctx.createRadialGradient(cx - R * 0.34, cy - R * 0.38, 0, cx - R * 0.34, cy - R * 0.38, R * 0.62);
+      glow.addColorStop(0, 'rgba(255,255,255,0.42)');
+      glow.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+
+      ctx.restore();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(23,23,26,0.3)';
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // crosshair readout
-      const h = hover.current;
-      if (h) {
-        const dx = h.x - cx;
-        const dy = cy - h.y;
-        const nx = dx / rad;
-        const ny = dy / rad;
-        const r2 = nx * nx + ny * ny;
-        if (r2 <= 0.985) {
-          const nz = Math.sqrt(1 - r2);
-          const yBack = ny * cosP + nz * sinP;
-          const z1Back = -ny * sinP + nz * cosP;
-          const xBack = nx * cosY - z1Back * sinY;
-          const zBack = nx * sinY + z1Back * cosY;
-          const lat = (Math.asin(Math.max(-1, Math.min(1, yBack))) * 180) / Math.PI;
-          const lon = (Math.atan2(zBack, xBack) * 180) / Math.PI;
-          const ns = `${Math.abs(lat).toFixed(1)}°${lat >= 0 ? 'N' : 'S'}`;
-          const ew = `${Math.abs(lon).toFixed(1)}°${lon >= 0 ? 'E' : 'W'}`;
-          setCoord(`${ns} ${ew}`);
+      // rim light: the arc catching the lamp
+      ctx.beginPath();
+      ctx.arc(cx, cy, R - 1, Math.PI * 1.02, Math.PI * 1.42);
+      ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
 
-          ctx.strokeStyle = 'rgba(138,51,36,0.85)';
+      v.pins.forEach((pin, i) => {
+        const p = rotate(toVec(pin.lon, pin.lat), v.lon, v.lat);
+        if (p.z < 0) return;
+        const q = project(p);
+        const dx = q.x - w / 2;
+        const dy = q.y - h / 2;
+        const len = Math.hypot(dx, dy) || 1;
+        const ux = dx / len;
+        const uy = dy / len;
+
+        // surface mark
+        ctx.fillStyle = 'rgba(138,51,36,0.95)';
+        ctx.beginPath();
+        ctx.arc(q.x, q.y, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // stalk along the surface normal
+        ctx.strokeStyle = 'rgba(138,51,36,0.9)';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(q.x, q.y);
+        ctx.lineTo(q.x + ux * 13, q.y + uy * 13);
+        ctx.stroke();
+
+        // head
+        ctx.beginPath();
+        ctx.arc(q.x + ux * 14, q.y + uy * 14, 3.4, 0, Math.PI * 2);
+        ctx.fillStyle = '#8a3324';
+        ctx.fill();
+
+        ctx.font = '9px ui-monospace, monospace';
+        ctx.fillStyle = '#8a3324';
+        ctx.fillText(String(i + 1), q.x + ux * 14 + 6, q.y + uy * 14 - 4);
+      });
+
+      const hv = v.hover;
+      if (hv) {
+        const nx = (hv.x - w / 2) / R;
+        const ny = -(hv.y - h / 2) / R;
+        const rr = nx * nx + ny * ny;
+        if (rr <= 0.98) {
+          const nz = Math.sqrt(Math.max(0, 1 - rr));
+          const cp = Math.cos(-v.lat * D2R);
+          const sp = Math.sin(-v.lat * D2R);
+          const cyw = Math.cos(-v.lon * D2R);
+          const syw = Math.sin(-v.lon * D2R);
+          const x1 = nx * cyw - nz * syw;
+          const z1 = nx * syw + nz * cyw;
+          const y2 = ny * cp - z1 * sp;
+          const z2 = ny * sp + z1 * cp;
+          const lat = Math.asin(Math.max(-1, Math.min(1, y2))) / D2R;
+          const lon = Math.atan2(z2, x1) / D2R;
+          setCoord(`${fmt(lat, 'N', 'S')} ${fmt(lon, 'E', 'W')}`);
+
+          ctx.strokeStyle = 'rgba(138,51,36,0.9)';
           ctx.lineWidth = 1;
           const g = 7;
           for (const [ax, ay, bx, by] of [
-            [h.x - g - 4, h.y, h.x - g, h.y],
-            [h.x + g, h.y, h.x + g + 4, h.y],
-            [h.x, h.y - g - 4, h.x, h.y - g],
-            [h.x, h.y + g, h.x, h.y + g + 4],
+            [hv.x - g - 4, hv.y, hv.x - g, hv.y],
+            [hv.x + g, hv.y, hv.x + g + 4, hv.y],
+            [hv.x, hv.y - g - 4, hv.x, hv.y - g],
+            [hv.x, hv.y + g, hv.x, hv.y + g + 4],
           ]) {
             ctx.beginPath();
             ctx.moveTo(ax, ay);
             ctx.lineTo(bx, by);
             ctx.stroke();
           }
-          ctx.fillStyle = 'rgba(138,51,36,0.85)';
-          ctx.fillRect(h.x - 0.5, h.y - 0.5, 1.4, 1.4);
         } else {
           setCoord(null);
         }
@@ -253,50 +313,111 @@ export default function Plate({ size = 420 }: { size?: number }) {
     };
 
     raf = requestAnimationFrame(draw);
-    draw(performance.now());
+    draw();
     window.addEventListener('resize', resize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+    };
+  }, [size]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const v = view.current;
+
+    const local = (e: PointerEvent | MouseEvent) => {
+      const r = canvas.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+
+    const unpin = (x: number, y: number) => {
+      const R = canvas.clientWidth * 0.42 * v.zoom;
+      const nx = (x - canvas.clientWidth / 2) / R;
+      const ny = -(y - canvas.clientHeight / 2) / R;
+      if (nx * nx + ny * ny > 0.94) return;
+      const nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
+      const cp = Math.cos(-v.lat * D2R);
+      const sp = Math.sin(-v.lat * D2R);
+      const cyw = Math.cos(-v.lon * D2R);
+      const syw = Math.sin(-v.lon * D2R);
+      const x1 = nx * cyw - nz * syw;
+      const z1 = nx * syw + nz * cyw;
+      const y2 = ny * cp - z1 * sp;
+      const z2 = ny * sp + z1 * cp;
+      const lat = Math.asin(Math.max(-1, Math.min(1, y2))) / D2R;
+      let lon = Math.atan2(z2, x1) / D2R;
+      if (lon > 180) lon -= 360;
+      if (lon < -180) lon += 360;
+      return { lat, lon };
+    };
 
     const down = (e: PointerEvent) => {
-      drag.current = { active: true, lastX: e.clientX, lastY: e.clientY, moved: false };
+      const { x, y } = local(e);
+      v.drag = true;
+      v.lastX = x;
+      v.lastY = y;
       canvas.setPointerCapture(e.pointerId);
       canvas.style.cursor = 'grabbing';
     };
+
     const move = (e: PointerEvent) => {
-      if (clearTimer.current) {
-        clearTimeout(clearTimer.current);
-        clearTimer.current = null;
-      }
-      const r = canvas.getBoundingClientRect();
-      const hx = e.clientX - r.left;
-      const hy = e.clientY - r.top;
-      hover.current = { x: hx, y: hy };
-      const nx2 = (hx - r.width / 2) / (r.width / 2);
-      const ny2 = (hy - r.height / 2) / (r.height / 2);
-      tilt.current.tx = Math.max(-1, Math.min(1, nx2)) * 0.10;
-      tilt.current.ty = Math.max(-1, Math.min(1, ny2)) * 0.07;
-      if (!drag.current.active) return;
-      const dx = e.clientX - drag.current.lastX;
-      const dy = e.clientY - drag.current.lastY;
-      if (Math.abs(dx) + Math.abs(dy) > 2) drag.current.moved = true;
-      drag.current.lastX = e.clientX;
-      drag.current.lastY = e.clientY;
-      const mm = motion.current;
-      mm.yaw += dx * 0.006;
-      mm.pitch += dy * 0.004;
-      mm.vy = dx * 0.001;
-      mm.vp = dy * 0.0008;
+      const { x, y } = local(e);
+      v.hover = { x, y };
+      if (!v.drag) return;
+      const dx = x - v.lastX;
+      const dy = y - v.lastY;
+      v.lastX = x;
+      v.lastY = y;
+      v.lon += dx * 0.35;
+      v.lat += dy * 0.3;
+      v.vlon = dx * 0.06;
+      v.vlat = dy * 0.05;
     };
-    const up = () => {
-      drag.current.active = false;
+
+    const up = (e: PointerEvent) => {
+      const wasDrag = Math.abs(v.vlon) + Math.abs(v.vlat) > 0.4;
+      v.drag = false;
       canvas.style.cursor = 'grab';
+      if (wasDrag) return;
+      const { x, y } = local(e);
+      const pin = unpin(x, y);
+      if (!pin) return;
+      v.pins = [...v.pins, pin].slice(-5);
+      setPins(v.pins);
     };
+
     const leave = () => {
-      hover.current = null;
-      tilt.current.tx = 0;
-      tilt.current.ty = 0;
-      // let the last reading stand a moment so it can actually be read
-      if (clearTimer.current) clearTimeout(clearTimer.current);
-      clearTimer.current = setTimeout(() => setCoord(null), 2200);
+      v.hover = null;
+      setCoord(null);
+    };
+
+    const wheel = (e: WheelEvent) => {
+      e.preventDefault();
+      v.zoom = Math.max(0.65, Math.min(2.1, v.zoom * (e.deltaY > 0 ? 0.94 : 1.06)));
+      setZoomLabel(`${v.zoom.toFixed(1)}×`);
+    };
+
+    const dbl = () => reset();
+
+    const key = (e: KeyboardEvent) => {
+      const step = 6;
+      if (e.key === 'ArrowLeft') v.lon -= step;
+      else if (e.key === 'ArrowRight') v.lon += step;
+      else if (e.key === 'ArrowUp') v.lat -= step;
+      else if (e.key === 'ArrowDown') v.lat += step;
+      else if (e.key === '+' || e.key === '=') {
+        v.zoom = Math.min(2.1, v.zoom * 1.08);
+        setZoomLabel(`${v.zoom.toFixed(1)}×`);
+      } else if (e.key === '-') {
+        v.zoom = Math.max(0.65, v.zoom * 0.92);
+        setZoomLabel(`${v.zoom.toFixed(1)}×`);
+      } else if (e.key.toLowerCase() === 'r') reset();
+      else if (e.key === ' ') {
+        e.preventDefault();
+        toggleSpin();
+      } else return;
+      e.preventDefault();
     };
 
     canvas.style.cursor = 'grab';
@@ -306,43 +427,73 @@ export default function Plate({ size = 420 }: { size?: number }) {
     canvas.addEventListener('pointerup', up);
     canvas.addEventListener('pointercancel', up);
     canvas.addEventListener('pointerleave', leave);
+    canvas.addEventListener('wheel', wheel, { passive: false });
+    canvas.addEventListener('dblclick', dbl);
+    canvas.addEventListener('keydown', key);
 
     return () => {
-      if (clearTimer.current) clearTimeout(clearTimer.current);
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
       canvas.removeEventListener('pointerdown', down);
       canvas.removeEventListener('pointermove', move);
       canvas.removeEventListener('pointerup', up);
       canvas.removeEventListener('pointercancel', up);
       canvas.removeEventListener('pointerleave', leave);
+      canvas.removeEventListener('wheel', wheel);
+      canvas.removeEventListener('dblclick', dbl);
+      canvas.removeEventListener('keydown', key);
     };
-  }, [mode, size]);
-
-  const current = MODES.find((m) => m.id === mode) ?? MODES[0];
+  }, [reset, toggleSpin]);
 
   return (
     <figure>
-      <div className="plate relative">
-        <canvas ref={canvasRef} aria-hidden="true" className="mx-auto block" />
+      <div ref={shellRef} className="plate relative">
+        <canvas
+          ref={canvasRef}
+          tabIndex={0}
+          role="img"
+          aria-label="Interactive globe. Drag to rotate, wheel to zoom, click to pin a coordinate."
+          className="mx-auto block focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent"
+        />
         {coord && (
           <span className="mono-label tabular pointer-events-none absolute bottom-3 left-4 bg-[#f7f4ed] px-1 text-accent">
             {coord}
           </span>
         )}
+        {pins.length > 0 && (
+          <span className="mono-label pointer-events-none absolute bottom-3 right-4 bg-[#f7f4ed] px-1">
+            {pins.length} pin{pins.length > 1 ? 's' : ''} · {zoomLabel}
+          </span>
+        )}
       </div>
+
       <figcaption className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="mono-label">
-          <span className="mark">Plate I</span> · landmass, drag or hover
+          <span className="mark">Plate I</span> · drag, wheel, click to pin
         </span>
-        <button
-          type="button"
-          onClick={cycle}
-          className="mono-label text-left underline decoration-rule decoration-1 underline-offset-4 transition-colors hover:text-ink hover:decoration-accent"
-          aria-label="Change the dither screen"
-        >
-          {current.label} ↻
-        </button>
+        <span className="mono-label flex flex-wrap gap-x-4 gap-y-1">
+          <button
+            type="button"
+            onClick={toggleSpin}
+            className="underline decoration-rule underline-offset-4 hover:text-ink hover:decoration-accent"
+          >
+            {spin ? 'stop spin' : 'spin'}
+          </button>
+          <button
+            type="button"
+            onClick={reset}
+            className="underline decoration-rule underline-offset-4 hover:text-ink hover:decoration-accent"
+          >
+            reset
+          </button>
+          {pins.length > 0 && (
+            <button
+              type="button"
+              onClick={clearPins}
+              className="underline decoration-rule underline-offset-4 hover:text-ink hover:decoration-accent"
+            >
+              clear {pins.length}
+            </button>
+          )}
+        </span>
       </figcaption>
     </figure>
   );

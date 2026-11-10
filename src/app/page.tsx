@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Plate from '@/components/plate';
+import CopyValue from '@/components/copy-value';
 import { MODELS, PROGRAMS, PUBLICATIONS } from '@/lib/lab';
 
 const CONTENTS = [
@@ -76,7 +77,7 @@ export default function HomePage() {
             <li key={c.href} className="border-b border-rule">
               <Link
                 href={c.href}
-                className="group grid grid-cols-[2.5rem_1fr] items-baseline gap-x-4 gap-y-1 py-7 md:grid-cols-[2.5rem_1fr_auto]"
+                className="ink-row group grid grid-cols-[2.5rem_1fr] items-baseline gap-x-4 gap-y-1 py-7 md:grid-cols-[2.5rem_1fr_auto]"
               >
                 <span className="mono-label tabular mark">{String(i + 1).padStart(2, '0')}</span>
                 <span>
@@ -127,9 +128,14 @@ export default function HomePage() {
 
           <aside className="border-t border-rule pt-6 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
             <p className="mono-label">Headline result</p>
-            <p className="tabular mt-3 font-serif text-[54px] leading-none tracking-[-0.02em]">
-              −33.3
-            </p>
+            <div className="mt-3">
+              <CopyValue
+                value="−33.3"
+                copy="−33.3 pp (95% CI [−51.2, −11.6], exact McNemar p = 0.00781), Qwen2.5-1.5B-Instruct, L=9"
+                hint="Click to copy the figure"
+                className="tabular font-serif text-[54px] leading-none tracking-[-0.02em] text-ink"
+              />
+            </div>
             <p className="mono-label mt-2">pp · backward vs forward</p>
             <dl className="mt-7 space-y-2 border-t border-rule pt-4">
               {[

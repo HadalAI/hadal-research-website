@@ -43,7 +43,7 @@ export default function PublicationsPage() {
       </header>
 
       {PUBLICATIONS.map((pub) => (
-        <article key={pub.slug} className="border-b border-rule py-12">
+        <article key={pub.slug} className="ink-row border-b border-rule py-12">
           <div className="grid gap-8 md:grid-cols-[5rem_1fr]">
             <div>
               <p className="mono-label tabular">01</p>

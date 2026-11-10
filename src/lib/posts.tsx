@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Term from '@/components/term';
 import type { ReactNode } from 'react';
 
 export type Post = {
@@ -140,11 +141,11 @@ Question: What item is at the 5th position from the end?         →  R`}
             11) and three question templates.
           </li>
           <li>
-            <span className="text-ink">Statistics.</span> Exact McNemar tests and Newcombe
+            <span className="text-ink">Statistics.</span> Exact <Term k="mcnemar">McNemar</Term> tests and <Term k="ci">Newcombe</Term>
             method-10 intervals for paired proportions, computed from the 2×2 counts.
           </li>
           <li>
-            <span className="text-ink">Decision rule.</span> A ±15 percentage-point practical
+            <span className="text-ink">Decision rule.</span> A ±15 <Term k="pp">percentage-point</Term> practical
             margin and the 24-item cell size were fixed before the midpoint runs. The 95% interval
             method was not; it was adopted in v5 and corrected in v6, after the data existed. The
             paper says so, and keeps a correction log.
@@ -192,14 +193,14 @@ Question: What item is at the 5th position from the end?         →  R`}
         <p className={P}>
           Both wording cells ran on the same 24 lists, so each item contributes both effects. The
           baseline effect is −37.50 points, the word-ordinal paraphrase is +16.67 points, and their
-          interaction is −54.17 points (95% CI [−79.17, −33.33], exact permutation p = 0.00048828,
+          interaction is −54.17 points (<Term k="ci">95% CI</Term> [−79.17, −33.33], exact permutation p = 0.00048828,
           i.e. 2/4096). The paraphrase changes several things at once — “What” to “Which”, the digit
           to a word, a dropped clause — so this is an anchor × question-template interaction, not a
           digit-versus-word effect. It was specified after the baseline cells existed, and is
           labelled exploratory.
         </p>
         <p className={P}>
-          At L=11 the contrast is −4.2 points (95% CI [−24.5, +16.3]): no reduction detected at this
+          At L=11 the contrast is −4.2 points (<Term k="ci">95% CI</Term> [−24.5, +16.3]): no reduction detected at this
           sample size, and the interval still admits a penalty of about twenty points. Length
           generalisation is therefore not established, only not contradicted.
         </p>

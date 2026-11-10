@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Navigation from '@/components/navigation';
+import PointerLayer from '@/components/pointer-layer';
+import RunningHead from '@/components/running-head';
 import { IBM_Plex_Sans, IBM_Plex_Serif, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 
@@ -39,12 +41,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
       <body className="min-h-screen bg-paper font-serif text-ink antialiased">
+        <PointerLayer />
         <div className="border-b border-rule">
           <div className="mx-auto flex max-w-page items-baseline justify-between gap-8 px-6 py-3 md:px-10">
             <p className="mono-label">
               Hadal Research <span className="px-2 text-rule">/</span> Technical report series
             </p>
-            <p className="mono-label hidden sm:block">Est. 2026 · Vol. 01</p>
+            <RunningHead />
           </div>
         </div>
 

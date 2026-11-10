@@ -32,7 +32,7 @@ export default function BlogIndex() {
       </header>
 
       {posts.map((p) => (
-        <article key={p.slug} className="border-b border-rule py-10">
+        <article key={p.slug} className="ink-row border-b border-rule py-10">
           <div className="grid gap-4 md:grid-cols-[8rem_1fr_auto] md:items-baseline">
             <div>
               <p className="mono-label">{p.kind}</p>

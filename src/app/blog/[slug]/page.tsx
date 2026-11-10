@@ -59,7 +59,7 @@ export default async function BlogPost({ params }: Props) {
           </p>
         )}
 
-        <div className="mt-10 border-t border-ink pt-8">{post.body}</div>
+        <div className="marginalia mt-10 border-t border-ink pt-8">{post.body}</div>
 
         {post.links.length > 0 && (
           <section className="mt-14 border-t border-rule pt-6">
