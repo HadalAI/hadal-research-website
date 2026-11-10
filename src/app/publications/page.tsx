@@ -1,7 +1,16 @@
 import Link from 'next/link';
 import { PUBLICATIONS } from '@/lib/lab';
+import CopyCitation from '@/components/copy-citation';
 
 export const metadata = { title: 'Publications' };
+
+const BIBTEX = `@misc{imran2026changingoneword,
+  title  = {Changing One Word: a paired test of anchor direction in list indexing},
+  author = {Imran, Muhammad Ammar},
+  year   = {2026},
+  note   = {Preprint, v6. Not peer reviewed.},
+  url    = {https://github.com/okyssta/llm-midpoint-anchor-study}
+}`;
 
 export default function PublicationsPage() {
   return (
@@ -35,6 +44,7 @@ export default function PublicationsPage() {
                 <p className="mt-6 max-w-2xl text-sm leading-relaxed text-[#8c9197]">{pub.abstract}</p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
+                  <CopyCitation bibtex={BIBTEX} />
                   {pub.links.map((l) =>
                     l.external ? (
                       <a

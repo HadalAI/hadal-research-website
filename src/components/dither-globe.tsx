@@ -90,6 +90,16 @@ export default function DitherGlobe({ size = 520 }: { size?: number }) {
       const sinY = Math.sin(m.yaw);
       const cosP = Math.cos(m.pitch);
       const sinP = Math.sin(m.pitch);
+      const sweep = reduced ? 0 : (t * 0.00035) % (Math.PI * 2);
+
+      /** radar-like brightening along the sweep arm */
+      const sweepBoost = (gx: number, gy: number) => {
+        if (reduced) return 0;
+        const ang = Math.atan2(gy * cell - cy, gx * cell - cx);
+        let d = Math.abs(ang - sweep);
+        if (d > Math.PI) d = Math.PI * 2 - d;
+        return d < 0.26 ? (1 - d / 0.26) * 0.65 : 0;
+      };
 
       counts.fill(0);
       shadeSum.fill(0);
@@ -134,6 +144,18 @@ export default function DitherGlobe({ size = 520 }: { size?: number }) {
       ctx.fillStyle = 'rgba(3,4,5,0.82)';
       ctx.fill();
 
+      // sonar wedge under the landmass
+      if (!reduced) {
+        const wedge = ctx.createConicGradient(sweep, cx, cy);
+        wedge.addColorStop(0, 'rgba(122,167,192,0.16)');
+        wedge.addColorStop(0.12, 'rgba(122,167,192,0)');
+        wedge.addColorStop(1, 'rgba(122,167,192,0)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, 0, Math.PI * 2);
+        ctx.fillStyle = wedge;
+        ctx.fill();
+      }
+
       // instrument rim
       ctx.beginPath();
       ctx.arc(cx, cy, R + 1.5, 0, Math.PI * 2);
@@ -168,7 +190,8 @@ export default function DitherGlobe({ size = 520 }: { size?: number }) {
 
           if (level <= threshold * 0.72) continue;
 
-          const alpha = Math.min(1, 0.4 + level * 0.9);
+          const alpha = Math.min(1, 0.4 + level * 0.9 + sweepBoost(gx, gy));
+
           ctx.fillStyle =
             level > 0.66 ? `rgba(214,232,242,${alpha})` : `rgba(111,159,184,${alpha})`;
           const px = Math.round(gx * cell);
@@ -192,6 +215,16 @@ export default function DitherGlobe({ size = 520 }: { size?: number }) {
           ctx.fillStyle = 'rgba(198,222,234,0.78)';
           ctx.fillRect(Math.round(gx * cell), Math.round(gy * cell), cell - 0.6, cell - 0.6);
         }
+      }
+
+      // sweep arm, faint enough to read as a sounder rather than a spinner
+      if (!reduced) {
+        ctx.strokeStyle = 'rgba(122,167,192,0.22)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(sweep) * R, cy + Math.sin(sweep) * R);
+        ctx.stroke();
       }
     };
 

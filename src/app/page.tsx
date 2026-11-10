@@ -43,17 +43,6 @@ export default function HomePage() {
     <main>
       {/* HERO */}
       <section className="relative overflow-hidden border-b hairline">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, rgba(255,255,255,0.030) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.030) 1px, transparent 1px)',
-            backgroundSize: '56px 56px',
-            maskImage: 'radial-gradient(ellipse 70% 60% at 50% 38%, #000 25%, transparent 80%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 50% 38%, #000 25%, transparent 80%)',
-          }}
-        />
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 pb-16 pt-16 md:pt-24 lg:grid-cols-[1fr_520px]">
           <div>
             <p className="mono-label">INDEPENDENT RESEARCH LAB · EST. 2026</p>

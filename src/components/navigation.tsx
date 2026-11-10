@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import Image from 'next/image';
+import ScrambleText from '@/components/scramble-text';
 
 const links = [
   { href: '/research', label: 'Research' },
@@ -34,7 +35,7 @@ export default function Navigation() {
                 isCurrent(l.href) ? 'text-[#f5f5f2]' : 'text-[#555b61] hover:text-[#f5f5f2]'
               }`}
             >
-              {l.label}
+              <ScrambleText text={l.label} />
             </Link>
           ))}
           <a
@@ -72,7 +73,7 @@ export default function Navigation() {
                 isCurrent(l.href) ? 'text-[#f5f5f2]' : 'text-[#555b61]'
               }`}
             >
-              {l.label}
+              <ScrambleText text={l.label} />
             </Link>
           ))}
           <a
