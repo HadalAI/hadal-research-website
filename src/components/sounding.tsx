@@ -54,13 +54,13 @@ export default function Sounding() {
       }
     };
 
-    // three clicks on the masthead label, inside 700 ms
+    // three clicks on the masthead label, inside 1200 ms
     let clicks: number[] = [];
     const onWordmark = (e: MouseEvent) => {
       const el = (e.target as HTMLElement).closest('#imprint-mark');
       if (!el) return;
       const now = performance.now();
-      clicks = [...clicks.filter((t) => now - t < 700), now];
+      clicks = [...clicks.filter((t) => now - t < 1200), now];
       if (clicks.length >= 3) {
         clicks = [];
         show('COLOPHON', 'Set in IBM Plex · printed at 10,911 m');
