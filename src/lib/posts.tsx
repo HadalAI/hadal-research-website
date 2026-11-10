@@ -15,15 +15,14 @@ export type Post = {
   links: { label: string; href: string; external?: boolean }[];
 };
 
-const P = 'mt-5 text-[15px] leading-[1.75] text-[#a7acb1]';
-const LEAD = 'text-[17px] leading-[1.7] text-[#c9cdd2]';
-const H2 = 'mt-14 border-t hairline pt-6 font-mono text-[11px] uppercase tracking-[0.18em] text-[#7f858c]';
-const H3 = 'mt-9 text-sm font-medium text-[#f5f5f2]';
-const UL = 'mt-5 space-y-3 pl-5 text-[15px] leading-[1.7] text-[#a7acb1]';
-const NUM = 'tabular font-mono text-[13px] text-[#e6e6e2]';
+const P = 'mt-5 font-serif text-[17px] leading-[1.68] text-ink/85';
+const LEAD = 'font-serif text-[20px] leading-[1.55] text-ink';
+const H2 = 'mt-12 border-t border-rule pt-5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted';
+const H3 = 'mt-8 font-serif text-[21px] italic';
+const UL = 'mt-5 list-disc space-y-2.5 pl-6 font-serif text-[17px] leading-[1.65] text-ink/85';
 const CODE =
-  'mt-6 border border-[#161a1e] bg-[#07090b] p-5 font-mono text-[12px] leading-[1.7] text-[#c9cdd2] overflow-x-auto';
-const NOTE = 'mt-8 border-l-2 border-[#2a3037] pl-5 text-[13px] leading-[1.7] text-[#8c9197]';
+  'mt-6 overflow-x-auto border-l-2 border-accent/50 bg-paper-2 px-5 py-4 font-mono text-[12px] leading-[1.8] text-ink';
+const NOTE = 'mt-8 border-l-2 border-accent pl-5 font-serif text-[15px] italic leading-relaxed text-muted';
 
 function Table({
   head,
@@ -36,16 +35,16 @@ function Table({
 }) {
   return (
     <figure className={`mt-8 ${head.length > 3 ? 'lg:-mx-16 xl:-mx-24' : ''}`}>
-      <div className="overflow-x-auto border-t hairline">
+      <div className="overflow-x-auto border-t border-ink">
         <table
-          className={`w-full border-collapse text-left ${head.length > 3 ? 'min-w-[640px]' : 'min-w-[300px]'}`}
+          className={`paper-table text-left ${head.length > 3 ? 'min-w-[660px]' : 'min-w-[300px]'}`}
         >
           <thead>
             <tr className="border-b hairline">
               {head.map((h) => (
                 <th
                   key={h}
-                  className="whitespace-nowrap py-3 pr-6 font-mono text-[10px] font-normal uppercase tracking-[0.14em] text-[#555b61]"
+                  className="whitespace-nowrap"
                 >
                   {h}
                 </th>
@@ -54,14 +53,9 @@ function Table({
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={i} className="border-b hairline">
+              <tr key={i}>
                 {r.map((c, j) => (
-                  <td
-                    key={j}
-                    className={`whitespace-nowrap py-3 pr-6 ${
-                      j === 0 ? 'text-[13px] text-[#f5f5f2]' : 'tabular font-mono text-[12px] text-[#a7acb1]'
-                    }`}
-                  >
+                  <td key={j} className={j === 0 ? 'text-ink' : 'tabular text-muted'}>
                     {c}
                   </td>
                 ))}
@@ -70,7 +64,7 @@ function Table({
           </tbody>
         </table>
       </div>
-      <figcaption className="mt-3 text-[12px] leading-relaxed text-[#555b61]">{caption}</figcaption>
+      <figcaption className="mt-3 font-serif text-[13.5px] leading-relaxed text-muted">{caption}</figcaption>
     </figure>
   );
 }
@@ -83,7 +77,7 @@ export const POSTS: Post[] = [
     date: '2026-10-27',
     displayDate: '27 October 2026',
     authors: 'Muhammad Ammar Imran',
-    readingTime: '9 min',
+    readingTime: '9 pages',
     summary:
       'Ask for the middle of a list from the beginning and from the end. Same item, same ordinal, one word different. On Qwen2.5-1.5B-Instruct that one word costs 33 points of accuracy — and the loss depends on how the question is phrased.',
     tags: ['long context', 'positional retrieval', 'paired analysis', 'small models'],
@@ -137,20 +131,20 @@ Question: What item is at the 5th position from the end?         →  R`}
         <h2 className={H2}>What was measured</h2>
         <ul className={UL}>
           <li>
-            <span className="text-[#f5f5f2]">Model.</span> Qwen2.5-1.5B-Instruct, with a 0.5B control,
+            <span className="text-ink">Model.</span> Qwen2.5-1.5B-Instruct, with a 0.5B control,
             both run in float32 on CPU.
           </li>
           <li>
-            <span className="text-[#f5f5f2]">Design.</span> 24-item cells, paired by item, across list
+            <span className="text-ink">Design.</span> 24-item cells, paired by item, across list
             set (two seeds), measurement mode (forced choice and free generation), length (L = 7, 9,
             11) and three question templates.
           </li>
           <li>
-            <span className="text-[#f5f5f2]">Statistics.</span> Exact McNemar tests and Newcombe
+            <span className="text-ink">Statistics.</span> Exact McNemar tests and Newcombe
             method-10 intervals for paired proportions, computed from the 2×2 counts.
           </li>
           <li>
-            <span className="text-[#f5f5f2]">Decision rule.</span> A ±15 percentage-point practical
+            <span className="text-ink">Decision rule.</span> A ±15 percentage-point practical
             margin and the 24-item cell size were fixed before the midpoint runs. The 95% interval
             method was not; it was adopted in v5 and corrected in v6, after the data existed. The
             paper says so, and keeps a correction log.
@@ -184,7 +178,7 @@ Question: What item is at the 5th position from the end?         →  R`}
           points. None of them clears the 15-point practical margin — their upper ends are −11.6,
           −11.6, −14.8 and −5.0. So the supported claim is about sign, not size:
         </p>
-        <p className={`${P} text-[#f5f5f2]`}>
+        <p className={`${P} text-ink`}>
           In this model, with this wording, changing the anchor word alone reduces accuracy. This
           study cannot bound the size of that reduction below 15 points.
         </p>
@@ -212,7 +206,7 @@ Question: What item is at the 5th position from the end?         →  R`}
 
         <div className={NOTE}>
           <p>
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#555b61]">Not claimed </span>
+            <span className="mono-label">Not claimed </span>
             a general direction effect; a mixture of two mechanisms; anything about frontier models;
             priority over prior work on prompt sensitivity, which is real and predates this study.
           </p>
@@ -221,7 +215,7 @@ Question: What item is at the 5th position from the end?         →  R`}
         <h2 className={H2}>Reproducing it</h2>
         <p className={P}>
           The analysis path imports only the Python standard library — no numpy, no scipy, nothing to
-          install. <code className="font-mono text-[12px] text-[#c9cdd2]">recompute_v5.py</code>{' '}
+          install. <code className="font-mono text-[13px] text-ink">recompute_v5.py</code>{' '}
           regenerates every interval and verdict from the raw JSONL in under a second. The repository
           ships the raw records, the per-item indicators, a timestamped correction log, a novelty
           audit, and a SHA-256 manifest that verifies byte-for-byte. Regenerating on a different libm
@@ -241,7 +235,7 @@ Question: What item is at the 5th position from the end?         →  R`}
     date: '2026-10-27',
     displayDate: '27 October 2026',
     authors: 'Hadal Research',
-    readingTime: '4 min',
+    readingTime: '4 min read',
     summary:
       'The study above ran on two vCPUs and no GPU. That constraint is part of the method, not a footnote — it sets the model scale, the number of cells, and what the results are allowed to claim.',
     tags: ['method', 'reproducibility', 'compute'],
@@ -260,7 +254,7 @@ Question: What item is at the 5th position from the end?         →  R`}
     body: (
       <>
         <p className={LEAD}>
-          A lab note on the machine behind <Link href="/blog/changing-one-word" className="text-[#7aa7c0] underline-offset-2 hover:underline">Changing One Word</Link>,
+          A lab note on the machine behind <Link href="/blog/changing-one-word" className="link">Changing One Word</Link>,
           because the hardware explains most of the design choices in it.
         </p>
 
@@ -288,7 +282,7 @@ Question: What item is at the 5th position from the end?         →  R`}
         </p>
         <p className={P}>
           One trap is worth recording: the 1.5B checkpoint ships in bfloat16, and loading it with{' '}
-          <code className="font-mono text-[12px] text-[#c9cdd2]">dtype=float32</code> doubles peak
+          <code className="font-mono text-[13px] text-ink">dtype=float32</code> doubles peak
           allocation and sends the machine into swap. The checkpoint has to be converted to float32
           on disk first. Without that step the run either fails or takes long enough to be abandoned
           mid-grid — which produces a partial grid, not a result.

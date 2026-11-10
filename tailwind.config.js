@@ -4,18 +4,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: '#030405',
-        surface: '#07090b',
-        'surface-2': '#0b0e11',
-        line: '#161a1e',
-        ink: '#f5f5f2',
-        'ink-2': '#8c9197',
-        'ink-3': '#555b61',
-        accent: '#5b8fa8',
+        paper: '#f4f1e9',
+        'paper-2': '#eae6da',
+        ink: '#17171a',
+        muted: '#6a665c',
+        rule: '#d5cfc0',
+        accent: '#8a3324',
       },
       fontFamily: {
+        serif: ['var(--font-newsreader)', 'Iowan Old Style', 'Georgia', 'serif'],
         sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-geist-mono)', 'ui-monospace', 'monospace'],
+      },
+      maxWidth: {
+        page: '1120px',
+        measure: '68ch',
       },
     },
   },

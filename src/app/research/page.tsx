@@ -4,119 +4,123 @@ import { PROGRAMS } from '@/lib/lab';
 export const metadata = { title: 'Research' };
 
 const statusClass = (status: string) =>
-  status === 'PUBLISHED'
-    ? 'text-[#5b8fa8]'
-    : status === 'ACTIVE'
-      ? 'text-emerald-500'
-      : 'text-[#555b61]';
+  status === 'PUBLISHED' ? 'text-accent' : status === 'ACTIVE' ? 'text-ink' : 'text-muted';
 
 export default function ResearchPage() {
   return (
-    <main className="mx-auto max-w-6xl px-6 pb-32">
-      <p className="mono-label pt-20">THE AGENDA</p>
-      <h1 className="mt-6 text-5xl font-semibold tracking-tight md:text-6xl">RESEARCH</h1>
-      <p className="mt-8 max-w-xl text-sm leading-relaxed text-[#8c9197]">
-        Four programs, one question each. Hybrid model design is the through-line: where attention is
-        still worth its cost, what a model does with position when it has less of it, and how to tell
-        a real effect from a lucky run.
-      </p>
-
-      <div className="mt-16">
-        {PROGRAMS.map((p) => (
-          <article key={p.slug} id={p.slug} className="record border-t hairline py-14 last:border-b">
-            <div className="grid gap-10 md:grid-cols-[3rem_1fr]">
-              <span className="font-mono text-xs text-[#3d434b]">{p.id}</span>
-              <div>
-                <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
-                  <h2 className="text-2xl font-medium tracking-tight text-[#f5f5f2]">{p.title}</h2>
-                  <span className={`font-mono text-[10px] uppercase tracking-widest ${statusClass(p.status)}`}>
-                    {p.status}
-                  </span>
-                </div>
-                <p className="mt-4 max-w-2xl text-base leading-relaxed text-[#c9cdd2]">{p.lead}</p>
-                <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#8c9197]">{p.summary}</p>
-
-                <div className="mt-8 grid gap-8 md:grid-cols-[8rem_1fr]">
-                  <p className="mono-label">APPROACH</p>
-                  <ol className="space-y-3 text-sm leading-relaxed text-[#8c9197]">
-                    {p.approach.map((a, i) => (
-                      <li key={i} className="flex gap-4">
-                        <span className="shrink-0 font-mono text-[10px] text-[#3d434b]">
-                          {String(i + 1).padStart(2, '0')}
-                        </span>
-                        <span>{a}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-
-                {p.outputs && p.outputs.length > 0 && (
-                  <div className="mt-8 grid gap-8 md:grid-cols-[8rem_1fr]">
-                    <p className="mono-label">OUTPUT</p>
-                    <ul className="space-y-2.5">
-                      {p.outputs.map((o) => (
-                        <li key={o.href}>
-                          {o.external ? (
-                            <a
-                              href={o.href}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-sm text-[#7aa7c0] underline-offset-4 hover:underline"
-                            >
-                              {o.label} ↗
-                            </a>
-                          ) : (
-                            <Link
-                              href={o.href}
-                              className="text-sm text-[#7aa7c0] underline-offset-4 hover:underline"
-                            >
-                              {o.label} →
-                            </Link>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <section className="mt-24 grid gap-12 border-t hairline pt-14 md:grid-cols-2">
+    <main className="mx-auto max-w-page px-6 md:px-10">
+      <header className="grid gap-10 border-b border-rule py-14 md:grid-cols-[1fr_260px] md:items-end">
         <div>
-          <p className="mono-label mb-6">HOW WE WORK</p>
-          <ol className="space-y-5 text-sm leading-relaxed text-[#8c9197]">
+          <p className="mono-label">Section 01</p>
+          <h1 className="mt-5 font-serif text-[clamp(40px,6vw,64px)] font-normal leading-[0.95] tracking-[-0.02em]">
+            Research
+          </h1>
+          <p className="mt-6 max-w-[52ch] font-serif text-[18px] leading-[1.55] text-muted">
+            Four programs, one question each. Hybrid model design is the through-line: where
+            attention is still worth its cost, what a model does with position when it has less of
+            it, and how to tell a real effect from a lucky run.
+          </p>
+        </div>
+        <dl className="border-t border-rule pt-4 md:border-l md:border-t-0 md:pl-10 md:pt-0">
+          <div className="flex justify-between gap-4">
+            <dt className="mono-label">Programs</dt>
+            <dd className="tabular font-mono text-[11px]">04</dd>
+          </div>
+          <div className="mt-2 flex justify-between gap-4">
+            <dt className="mono-label">Published</dt>
+            <dd className="tabular font-mono text-[11px]">01</dd>
+          </div>
+          <div className="mt-2 flex justify-between gap-4">
+            <dt className="mono-label">Planned</dt>
+            <dd className="tabular font-mono text-[11px]">01</dd>
+          </div>
+        </dl>
+      </header>
+
+      {PROGRAMS.map((p) => (
+        <article
+          key={p.slug}
+          id={p.slug}
+          className="grid scroll-mt-8 gap-8 border-b border-rule py-12 md:grid-cols-[5rem_1fr]"
+        >
+          <div>
+            <p className="mono-label tabular">{p.id}</p>
+            <p className={`mono-label mt-2 ${statusClass(p.status)}`}>{p.status}</p>
+          </div>
+
+          <div className="max-w-[64ch]">
+            <h2 className="font-serif text-[28px] leading-tight tracking-[-0.01em]">{p.title}</h2>
+            <p className="mt-3 font-serif text-[19px] leading-[1.5] text-ink/90">{p.lead}</p>
+            <p className="mt-5 font-serif text-[16px] leading-[1.65] text-muted">{p.summary}</p>
+
+            <p className="mono-label mt-8">Approach</p>
+            <ol className="mt-3 space-y-3">
+              {p.approach.map((a, i) => (
+                <li key={i} className="font-serif text-[15.5px] leading-relaxed text-muted">
+                  <span className="mono-label tabular mr-3 text-[9.5px] align-[0.25em]">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  {a}
+                </li>
+              ))}
+            </ol>
+
+            {p.outputs && p.outputs.length > 0 && (
+              <>
+                <p className="mono-label mt-8">Output</p>
+                <ul className="mt-3 space-y-2">
+                  {p.outputs.map((o) => (
+                    <li key={o.href} className="font-serif text-[16px]">
+                      {o.external ? (
+                        <a href={o.href} target="_blank" rel="noreferrer" className="link">
+                          {o.label} ↗
+                        </a>
+                      ) : (
+                        <Link href={o.href} className="link">
+                          {o.label} →
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        </article>
+      ))}
+
+      <section className="grid gap-8 py-14 md:grid-cols-[5rem_1fr]">
+        <p className="mono-label">§ Notes</p>
+        <div className="max-w-[64ch]">
+          <p className="font-serif text-[20px] leading-snug">How the work is run.</p>
+          <ol className="mt-5 space-y-4 font-serif text-[16px] leading-relaxed text-muted">
             <li>
-              <span className="mr-4 font-mono text-[10px] text-[#3d434b]">01</span>
-              One variable per experiment. If two things change, the result is a joint effect and is
-              labelled as one.
+              <span className="text-ink">One variable per experiment.</span> If two things change,
+              the result is a joint effect and is labelled as one.
             </li>
             <li>
-              <span className="mr-4 font-mono text-[10px] text-[#3d434b]">02</span>
-              The practical margin is written down before the run; the analysis method is named as
-              pre-specified or post hoc.
+              <span className="text-ink">Margins before data.</span> The practical margin is
+              written down before the run; the analysis method is named pre-specified or post hoc.
             </li>
             <li>
-              <span className="mr-4 font-mono text-[10px] text-[#3d434b]">03</span>
-              Raw records, per-item indicators and a verification manifest ship with every result.
+              <span className="text-ink">Records ship.</span> Raw records, per-item indicators and
+              a verification manifest accompany every result.
             </li>
             <li>
-              <span className="mr-4 font-mono text-[10px] text-[#3d434b]">04</span>
-              Corrections get a dated log. Verdicts that change are recorded as changed.
+              <span className="text-ink">Corrections get a log.</span> Verdicts that change are
+              recorded as changed.
             </li>
           </ol>
-        </div>
-        <div className="flex flex-col justify-end">
-          <p className="max-w-sm text-sm leading-relaxed text-[#555b61]">
-            Work in progress is listed as <span className="text-[#8c9197]">ACTIVE</span> or{' '}
-            <span className="text-[#8c9197]">PLANNED</span> and carries no results until there are
+          <p className="mt-8 font-serif text-[15px] text-muted">
+            Work in progress is marked <span className="text-ink">active</span> or{' '}
+            <span className="text-ink">planned</span> and carries no results until there are
             records to show.
           </p>
-          <Link href="/publications" className="btn btn-ghost mt-8 self-start">
-            Publications →
-          </Link>
+          <p className="mt-8">
+            <Link href="/publications" className="link font-serif text-[16px]">
+              Publications →
+            </Link>
+          </p>
         </div>
       </section>
     </main>

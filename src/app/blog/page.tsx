@@ -1,47 +1,59 @@
 import Link from 'next/link';
 import { sortedPosts } from '@/lib/posts';
 
-export const metadata = { title: 'Blog' };
+export const metadata = { title: 'Notes' };
 
 export default function BlogIndex() {
   const posts = sortedPosts();
-  return (
-    <main className="mx-auto max-w-6xl px-6 pb-32">
-      <p className="mono-label pt-20">NOTES FROM THE LAB</p>
-      <h1 className="mt-6 text-5xl font-semibold tracking-tight md:text-6xl">BLOG</h1>
-      <p className="mt-8 max-w-xl text-sm leading-relaxed text-[#8c9197]">
-        Papers, and the method notes around them. Written when there is something to record, not on a
-        schedule.
-      </p>
 
-      <div className="mt-16">
-        {posts.map((p) => (
-          <article key={p.slug} className="record border-t hairline py-12 last:border-b">
-            <div className="grid gap-6 md:grid-cols-[3rem_1fr_auto] md:items-baseline">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[#3d434b]">
-                {p.kind}
-              </span>
-              <div>
-                <h2 className="text-2xl font-medium leading-tight tracking-tight text-[#f5f5f2]">
-                  <Link href={`/blog/${p.slug}`} className="transition-colors hover:text-[#c9cdd2]">
-                    {p.title}
-                  </Link>
-                </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#8c9197]">{p.summary}</p>
-                <p className="mt-4 font-mono text-[11px] text-[#555b61]">
-                  {p.displayDate} · {p.authors} · {p.readingTime}
-                </p>
-              </div>
-              <Link
-                href={`/blog/${p.slug}`}
-                className="justify-self-start font-mono text-[11px] uppercase tracking-widest text-[#8c9197] transition-colors hover:text-[#f5f5f2] md:justify-self-end"
-              >
-                Read →
-              </Link>
+  return (
+    <main className="mx-auto max-w-page px-6 md:px-10">
+      <header className="grid gap-10 border-b border-rule py-14 md:grid-cols-[1fr_260px] md:items-end">
+        <div>
+          <p className="mono-label">Section 03</p>
+          <h1 className="mt-5 font-serif text-[clamp(40px,6vw,64px)] font-normal leading-[0.95] tracking-[-0.02em]">
+            Notes
+          </h1>
+          <p className="mt-6 max-w-[52ch] font-serif text-[18px] leading-[1.55] text-muted">
+            Papers, and the method around them. Written when there is something to record, not on
+            a schedule.
+          </p>
+        </div>
+        <dl className="border-t border-rule pt-4 md:border-l md:border-t-0 md:pl-10 md:pt-0">
+          <div className="flex justify-between gap-4">
+            <dt className="mono-label">Entries</dt>
+            <dd className="tabular font-mono text-[11px]">{String(posts.length).padStart(2, '0')}</dd>
+          </div>
+          <div className="mt-2 flex justify-between gap-4">
+            <dt className="mono-label">Latest</dt>
+            <dd className="font-mono text-[11px]">{posts[0]?.displayDate}</dd>
+          </div>
+        </dl>
+      </header>
+
+      {posts.map((p) => (
+        <article key={p.slug} className="border-b border-rule py-10">
+          <div className="grid gap-4 md:grid-cols-[8rem_1fr_auto] md:items-baseline">
+            <div>
+              <p className="mono-label">{p.kind}</p>
+              <p className="mono-label mt-1">{p.displayDate}</p>
             </div>
-          </article>
-        ))}
-      </div>
+            <div>
+              <h2 className="max-w-[30ch] font-serif text-[26px] leading-[1.18] tracking-[-0.01em]">
+                <Link href={`/blog/${p.slug}`} className="transition-colors hover:text-accent">
+                  {p.title}
+                </Link>
+              </h2>
+              <p className="mt-3 max-w-[62ch] font-serif text-[16px] leading-relaxed text-muted">
+                {p.summary}
+              </p>
+            </div>
+            <Link href={`/blog/${p.slug}`} className="link font-serif text-[16px]">
+              Read →
+            </Link>
+          </div>
+        </article>
+      ))}
     </main>
   );
 }
