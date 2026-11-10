@@ -47,6 +47,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
   const motion = useRef({ yaw: -0.55, pitch: 0.3, vy: 0, vp: 0 });
   const hover = useRef<{ x: number; y: number } | null>(null);
   const tilt = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
+  const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const printStart = useRef(0);
   const [mode, setMode] = useState<ModeId>('bayer4');
   const [coord, setCoord] = useState<string | null>(null);
@@ -261,6 +262,10 @@ export default function Plate({ size = 420 }: { size?: number }) {
       canvas.style.cursor = 'grabbing';
     };
     const move = (e: PointerEvent) => {
+      if (clearTimer.current) {
+        clearTimeout(clearTimer.current);
+        clearTimer.current = null;
+      }
       const r = canvas.getBoundingClientRect();
       const hx = e.clientX - r.left;
       const hy = e.clientY - r.top;
@@ -289,7 +294,9 @@ export default function Plate({ size = 420 }: { size?: number }) {
       hover.current = null;
       tilt.current.tx = 0;
       tilt.current.ty = 0;
-      setCoord(null);
+      // let the last reading stand a moment so it can actually be read
+      if (clearTimer.current) clearTimeout(clearTimer.current);
+      clearTimer.current = setTimeout(() => setCoord(null), 2200);
     };
 
     canvas.style.cursor = 'crosshair';
@@ -301,6 +308,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
     canvas.addEventListener('pointerleave', leave);
 
     return () => {
+      if (clearTimer.current) clearTimeout(clearTimer.current);
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('pointerdown', down);
@@ -315,25 +323,26 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
   return (
     <figure>
-      <div className="plate">
+      <div className="plate relative">
         <canvas ref={canvasRef} aria-hidden="true" className="mx-auto block" />
+        {coord && (
+          <span className="mono-label tabular pointer-events-none absolute bottom-3 left-4 bg-[#f7f4ed] px-1 text-accent">
+            {coord}
+          </span>
+        )}
       </div>
       <figcaption className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="mono-label">
           <span className="mark">Plate I</span> — landmass · drag / hover
         </span>
-        {coord ? (
-          <span className="mono-label tabular w-[9.5rem] text-right text-accent">{coord}</span>
-        ) : (
-          <button
-            type="button"
-            onClick={cycle}
-            className="mono-label text-left underline decoration-rule decoration-1 underline-offset-4 transition-colors hover:text-ink hover:decoration-accent"
-            aria-label="Change the dither screen"
-          >
-            {current.label} ↻
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={cycle}
+          className="mono-label text-left underline decoration-rule decoration-1 underline-offset-4 transition-colors hover:text-ink hover:decoration-accent"
+          aria-label="Change the dither screen"
+        >
+          {current.label} ↻
+        </button>
       </figcaption>
     </figure>
   );
