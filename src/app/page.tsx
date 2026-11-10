@@ -39,18 +39,18 @@ export default function HomePage() {
       <section className="border-b border-rule">
         <div className="mx-auto grid max-w-page gap-14 px-6 pb-16 pt-16 md:px-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
-            <p className="mono-label">Independent research lab</p>
-            <h1 className="mt-7 font-serif text-[clamp(48px,8.4vw,96px)] font-normal leading-[0.92] tracking-[-0.03em]">
+            <p className="mono-label rise">Independent research lab</p>
+            <h1 className="rise rise-1 mt-7 font-serif text-[clamp(48px,8.4vw,96px)] font-normal leading-[0.92] tracking-[-0.03em]">
               Research,
               <br />
               <em className="inline-block text-muted transition-transform duration-500 ease-out hover:translate-y-[0.06em]">at depth.</em>
             </h1>
-            <p className="mt-9 max-w-[44ch] font-serif text-[19px] leading-[1.55] text-muted">
+            <p className="rise rise-2 mt-9 max-w-[44ch] font-serif text-[19px] leading-[1.55] text-muted">
               Hadal Research is a small lab studying hybrid language models — how attention,
               recurrence and retrieval should be combined — and the measurement methods that
               decide whether a change is real.
             </p>
-            <p className="mt-9 flex flex-wrap gap-x-9 gap-y-3 font-serif text-[17px]">
+            <p className="rise rise-3 mt-9 flex flex-wrap gap-x-9 gap-y-3 font-serif text-[17px]">
               <Link href="/research" className="link">
                 Research agenda →
               </Link>
