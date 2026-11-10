@@ -23,7 +23,7 @@ export default async function BlogPost({ params }: Props) {
 
   return (
     <main className="mx-auto max-w-page px-6 md:px-10">
-      <div className="border-b border-rule py-4">
+      <div className="mx-auto max-w-measure border-b border-rule py-4">
         <Link href="/blog" className="mono-label link">
           ← Notes
         </Link>
@@ -44,7 +44,7 @@ export default async function BlogPost({ params }: Props) {
         <p className="mono-label mt-5">{post.tags.join(' / ')}</p>
 
         {post.links.length > 0 && (
-          <p className="mt-7 flex flex-wrap gap-x-7 gap-y-2 border-t border-rule pt-4">
+          <p className="mt-7 flex flex-wrap gap-x-7 gap-y-2">
             {post.links.slice(0, 2).map((l) => (
               <a
                 key={l.href}
