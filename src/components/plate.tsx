@@ -34,9 +34,9 @@ function buildBayer(size: number): number[][] {
 }
 
 const MODES = [
-  { id: 'bayer4', label: 'Ordered screen, 4×4', size: 4 },
-  { id: 'bayer8', label: 'Ordered screen, 8×8', size: 8 },
-  { id: 'noise', label: 'Random screen', size: 4 },
+  { id: 'bayer4', label: 'Screen: ordered 4×4', size: 4 },
+  { id: 'bayer8', label: 'Screen: ordered 8×8', size: 8 },
+  { id: 'noise', label: 'Screen: random', size: 4 },
 ] as const;
 
 type ModeId = (typeof MODES)[number]['id'];
@@ -288,7 +288,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
     };
     const up = () => {
       drag.current.active = false;
-      canvas.style.cursor = 'crosshair';
+      canvas.style.cursor = 'grab';
     };
     const leave = () => {
       hover.current = null;
@@ -299,7 +299,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
       clearTimer.current = setTimeout(() => setCoord(null), 2200);
     };
 
-    canvas.style.cursor = 'crosshair';
+    canvas.style.cursor = 'grab';
     canvas.style.touchAction = 'none';
     canvas.addEventListener('pointerdown', down);
     canvas.addEventListener('pointermove', move);
