@@ -51,7 +51,7 @@ export default function HomePage() {
               <br />
               <span className="text-[#7f858c]">at depth.</span>
             </h1>
-            <p className="mt-7 max-w-md text-base leading-relaxed text-[#8c9197]">
+            <p className="mt-7 max-w-md text-base leading-relaxed text-[#9aa0a6]">
               Hadal Research is a small lab studying hybrid language models — how attention,
               recurrence and retrieval should be combined — and the measurement methods that decide
               whether a change is real.

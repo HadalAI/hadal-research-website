@@ -127,7 +127,7 @@ export default function FieldBackground() {
       // hard patch boundary — the grid emerges out of the distortion. Alpha is
       // bucketed into a few batched paths so the whole mesh costs six strokes.
       const BUCKETS = 6;
-      const MAX_A = 0.44;
+      const MAX_A = 0.34;
       const paths: Path2D[] = [];
       for (let b = 0; b < BUCKETS; b++) paths.push(new Path2D());
 
@@ -156,7 +156,7 @@ export default function FieldBackground() {
       for (let gy = 0; gy < rows; gy++) {
         for (let gx = 0; gx < cols; gx++) {
           const i = gy * cols + gx;
-          const a = Math.min(0.62, (mag[i] / 12) * 0.62);
+          const a = Math.min(0.5, (mag[i] / 12) * 0.5);
           if (a < 0.08) continue;
           ctx.fillStyle = `rgba(198,222,234,${a})`;
           ctx.fillRect(X[i], Y[i], 1.6, 1.6);
