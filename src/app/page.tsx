@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import GlobeField from '@/components/globe-field';
+import DitherGlobe from '@/components/dither-globe';
 import { MODELS, PROGRAMS, PUBLICATIONS } from '@/lib/lab';
 
 const ICONS = {
@@ -43,7 +43,18 @@ export default function HomePage() {
     <main>
       {/* HERO */}
       <section className="relative overflow-hidden border-b hairline">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 pb-16 pt-16 md:pt-24 lg:grid-cols-[1fr_520px]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, rgba(255,255,255,0.030) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.030) 1px, transparent 1px)',
+            backgroundSize: '56px 56px',
+            maskImage: 'radial-gradient(ellipse 70% 60% at 50% 38%, #000 25%, transparent 80%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 50% 38%, #000 25%, transparent 80%)',
+          }}
+        />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 pb-16 pt-16 md:pt-24 lg:grid-cols-[1fr_520px]">
           <div>
             <p className="mono-label">INDEPENDENT RESEARCH LAB · EST. 2026</p>
             <h1 className="mt-7 text-[52px] font-semibold leading-[1.02] tracking-tight md:text-[68px]">
@@ -66,10 +77,13 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative mx-auto mt-2 w-full max-w-[330px] lg:mt-0 lg:max-w-none">
-            <GlobeField size={520} />
-            <p className="mono-label mt-4 text-center">COMPUTE FABRIC / DISTRIBUTED</p>
-          </div>
+          <figure className="relative mx-auto mt-2 w-full max-w-[330px] lg:mt-0 lg:max-w-none">
+            <DitherGlobe size={520} />
+            <figcaption className="mt-5 flex items-baseline justify-between gap-4 border-t hairline pt-3 font-mono text-[9px] uppercase tracking-[0.16em] text-[#555b61]">
+              <span>FIG. 01 — LANDMASS</span>
+              <span>ORDERED DITHER / BAYER 4×4</span>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -209,7 +223,7 @@ export default function HomePage() {
       {/* MODEL + COMPUTE */}
       <section className="mx-auto grid max-w-6xl gap-16 px-6 py-20 lg:grid-cols-2">
         <div>
-          <p className="mono-label">MODEL</p>
+          <p className="mono-label">MODEL PROGRAM</p>
           <div className="mt-6 flex items-baseline gap-4">
             <span className="font-mono text-3xl tracking-tight text-[#f5f5f2]">{model.name}</span>
             <span className="font-mono text-[10px] uppercase tracking-widest text-[#555b61]">

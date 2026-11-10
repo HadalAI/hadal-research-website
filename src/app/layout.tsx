@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Navigation from '@/components/navigation';
 import AnnouncementBar from '@/components/announcement-bar';
+import DepthGauge from '@/components/depth-gauge';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import './globals.css';
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navigation />
         </div>
         {children}
+        <DepthGauge />
         <footer className="border-t hairline py-12">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 md:flex-row">
             <span className="mono-label">HADAL RESEARCH / IN DEPTH</span>
