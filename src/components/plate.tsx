@@ -46,6 +46,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
   const drag = useRef({ active: false, lastX: 0, lastY: 0, moved: false });
   const motion = useRef({ yaw: -0.55, pitch: 0.3, vy: 0, vp: 0 });
   const hover = useRef<{ x: number; y: number } | null>(null);
+  const tilt = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
   const printStart = useRef(0);
   const [mode, setMode] = useState<ModeId>('bayer4');
   const [coord, setCoord] = useState<string | null>(null);
@@ -124,10 +125,19 @@ export default function Plate({ size = 420 }: { size?: number }) {
       const cx = s / 2;
       const cy = s / 2;
       const rad = R();
-      const cosY = Math.cos(m.yaw);
-      const sinY = Math.sin(m.yaw);
-      const cosP = Math.cos(m.pitch);
-      const sinP = Math.sin(m.pitch);
+
+      // the plate leans toward the pointer, so it reads as an object before
+      // anyone thinks to drag it
+      const tl = tilt.current;
+      tl.x += (tl.tx - tl.x) * 0.08;
+      tl.y += (tl.ty - tl.y) * 0.08;
+      const yaw = m.yaw + tl.x;
+      const pitch = Math.max(-0.75, Math.min(0.75, m.pitch + tl.y));
+
+      const cosY = Math.cos(yaw);
+      const sinY = Math.sin(yaw);
+      const cosP = Math.cos(pitch);
+      const sinP = Math.sin(pitch);
 
       counts.fill(0);
       shade.fill(0);
@@ -252,7 +262,13 @@ export default function Plate({ size = 420 }: { size?: number }) {
     };
     const move = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect();
-      hover.current = { x: e.clientX - r.left, y: e.clientY - r.top };
+      const hx = e.clientX - r.left;
+      const hy = e.clientY - r.top;
+      hover.current = { x: hx, y: hy };
+      const nx2 = (hx - r.width / 2) / (r.width / 2);
+      const ny2 = (hy - r.height / 2) / (r.height / 2);
+      tilt.current.tx = Math.max(-1, Math.min(1, nx2)) * 0.10;
+      tilt.current.ty = Math.max(-1, Math.min(1, ny2)) * 0.07;
       if (!drag.current.active) return;
       const dx = e.clientX - drag.current.lastX;
       const dy = e.clientY - drag.current.lastY;
@@ -271,6 +287,8 @@ export default function Plate({ size = 420 }: { size?: number }) {
     };
     const leave = () => {
       hover.current = null;
+      tilt.current.tx = 0;
+      tilt.current.ty = 0;
       setCoord(null);
     };
 
