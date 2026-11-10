@@ -56,7 +56,7 @@ export default function Sounding() {
 
     // three clicks on the masthead label, inside 1200 ms
     let clicks: number[] = [];
-    const onWordmark = (e: MouseEvent) => {
+    const onWordmark = (e: Event) => {
       const el = (e.target as HTMLElement).closest('#imprint-mark');
       if (!el) return;
       const now = performance.now();
@@ -68,11 +68,11 @@ export default function Sounding() {
     };
 
     document.addEventListener('keydown', onKey);
-    document.addEventListener('click', onWordmark);
+    document.addEventListener('pointerdown', onWordmark, true);
 
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.removeEventListener('click', onWordmark);
+      document.removeEventListener('pointerdown', onWordmark, true);
       if (timer.current) window.clearTimeout(timer.current);
     };
   }, []);
