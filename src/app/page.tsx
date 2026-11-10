@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import DitherGlobe from '@/components/dither-globe';
+import Plate from '@/components/plate';
 import { MODELS, PROGRAMS, PUBLICATIONS } from '@/lib/lab';
 
 const CONTENTS = [
@@ -43,7 +43,7 @@ export default function HomePage() {
             <h1 className="mt-7 font-serif text-[clamp(48px,8.4vw,96px)] font-normal leading-[0.92] tracking-[-0.03em]">
               Research,
               <br />
-              <em className="text-muted">at depth.</em>
+              <em className="inline-block text-muted transition-transform duration-500 ease-out hover:translate-y-[0.06em]">at depth.</em>
             </h1>
             <p className="mt-9 max-w-[44ch] font-serif text-[19px] leading-[1.55] text-muted">
               Hadal Research is a small lab studying hybrid language models — how attention,
@@ -60,15 +60,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <figure>
-            <div className="plate">
-              <DitherGlobe size={420} />
-            </div>
-            <figcaption className="mt-3 flex flex-wrap justify-between gap-x-4 gap-y-1">
-              <span className="mono-label"><span className="mark">Plate I</span> — landmass</span>
-              <span className="mono-label">Ordered dither, 4×4</span>
-            </figcaption>
-          </figure>
+          <Plate size={420} />
         </div>
       </section>
 
