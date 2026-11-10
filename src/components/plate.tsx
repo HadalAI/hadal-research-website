@@ -171,13 +171,6 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
       ctx.clearRect(0, 0, s, s);
 
-      // plate rule
-      ctx.beginPath();
-      ctx.arc(cx, cy, rad + 1, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(23,23,26,0.22)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
       // the plate prints itself in, once per screen
       const reveal = reduced ? 1 : Math.min(1, (t - printStart.current) / 820);
       const maxLog = Math.log(1 + max);
@@ -209,6 +202,13 @@ export default function Plate({ size = 420 }: { size?: number }) {
           ctx.fillRect(Math.round(gx * cell), Math.round(gy * cell), cell - 1.4, cell - 1.4);
         }
       }
+
+      // registration rule, drawn over the screen so it never breaks up
+      ctx.beginPath();
+      ctx.arc(cx, cy, rad + 1, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(23,23,26,0.30)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
       // crosshair readout
       const h = hover.current;
