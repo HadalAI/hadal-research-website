@@ -352,6 +352,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
         const S = bufW;
         for (let i = 0, n = S * S; i < n; i++) {
           if (!inside[i]) continue;
+          px[i * 4 + 3] = 0;
           const X = nxT[i];
           const Y = nyT[i];
           const Z = nzT[i];
