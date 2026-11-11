@@ -7,30 +7,29 @@ import { CHALLENGER } from '@/lib/depth-store';
 /**
  * Plate I — the earth, drawn on paper.
  *
- * Land is a real coastline set (Natural Earth 50m), rasterised once into an
- * equirectangular mask. The sphere is then drawn scanline by scanline: for each
- * screen row the latitude is known exactly, so the mask row is the only data
- * needed, and each run of land in it maps to a horizontal span of the row. There
- * is no polygon clipping and no horizon problem — a row simply stops where the
- * sphere does.
+ * Land is a real coastline set (Natural Earth 50m) rasterised once into an
+ * equirectangular mask. Each frame the sphere is rendered per pixel into an
+ * ImageData buffer: for every pixel the view ray meets the sphere at a known
+ * normal, which is rotated into globe space and sampled from the mask. That
+ * gives true 3D rotation — pitch included — with no polygon clipping, no seams
+ * at the limb and no polar artefacts.
  *
- * Rotation is longitude-only, like a globe on a stand. A fixed axial tilt is
- * applied when drawing, so the north pole leans without complicating the maths.
+ * Cost control: the buffer is rendered at CSS resolution (not 2x or 4x), only
+ * while something is moving, and at 24 fps for the unattended spin.
  */
 
 type Pin = { lat: number; lon: number; label?: string };
 
 const D2R = Math.PI / 180;
 const TAU = Math.PI * 2;
-const TILT = -16; // degrees, the axis leans left
-const MASK_W = 2048;
-const MASK_H = 1024;
+const TILT = -16;
+const MASK_W = 4096;
+const MASK_H = 2048;
+const LIGHT = { x: -0.45, y: 0.52, z: 0.72 };
 
 function fmt(v: number, pos: string, neg: string) {
   return `${Math.abs(v).toFixed(1)}°${v >= 0 ? pos : neg}`;
 }
-
-type Span = { lon0: number; lon1: number };
 
 export default function Plate({ size = 420 }: { size?: number }) {
   const shellRef = useRef<HTMLDivElement>(null);
@@ -38,17 +37,20 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
   const view = useRef({
     lon: -30,
+    lat: 16,
     zoom: 1,
     vlon: 0,
-    spin: true,
+    vlat: 0,
+    spin: false,
     drag: false,
     lastX: 0,
+    lastY: 0,
     hover: null as { x: number; y: number } | null,
     pins: [] as Pin[],
   });
 
   const [coord, setCoord] = useState<string | null>(null);
-  const [spin, setSpin] = useState(true);
+  const [spin, setSpin] = useState(false);
   const [pins, setPins] = useState<Pin[]>([]);
   const [zoomLabel, setZoomLabel] = useState('1.0×');
   const [idle, setIdle] = useState(false);
@@ -56,8 +58,10 @@ export default function Plate({ size = 420 }: { size?: number }) {
   const reset = useCallback(() => {
     const v = view.current;
     v.lon = -30;
+    v.lat = 16;
     v.zoom = 1;
     v.vlon = 0;
+    v.vlat = 0;
     setZoomLabel('1.0×');
   }, []);
 
@@ -80,9 +84,9 @@ export default function Plate({ size = 420 }: { size?: number }) {
     if (!ctx) return;
 
     const v = view.current;
-    // supersample: the canvas is drawn larger than its CSS box and the browser
-    // downsamples it, which is the cheapest way to smooth staircase edges
-    const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 2) * 2, 4);
+    // the canvas is scaled by the browser anyway; 1.5x is the point where the
+    // difference stops being visible and the raster cost halves
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let w = size;
@@ -93,54 +97,38 @@ export default function Plate({ size = 420 }: { size?: number }) {
     let lastInput = Date.now();
     let idleNow = false;
     let raf = 0;
+    let quality = 1; // drops to 0.8 / 0.65 if frames get expensive
 
-    /* ---------- mask, once ---------- */
-    const mask = document.createElement('canvas');
-    mask.width = MASK_W;
-    mask.height = MASK_H;
-    const mctx = mask.getContext('2d', { willReadFrequently: true });
-    const ROWS: Span[][] = new Array(MASK_H);
-
-    if (mctx) {
-      mctx.fillStyle = '#000';
-      mctx.fillRect(0, 0, MASK_W, MASK_H);
-      mctx.fillStyle = '#fff';
-      for (const ring of LAND_RINGS) {
-        mctx.beginPath();
-        for (let i = 0; i < ring.length; i++) {
-          const [lon, lat] = ring[i];
-          const x = ((lon + 180) / 360) * MASK_W;
-          const y = ((90 - lat) / 180) * MASK_H;
-          if (i === 0) mctx.moveTo(x, y);
-          else mctx.lineTo(x, y);
-        }
-        mctx.closePath();
-        mctx.fill();
-      }
-
-      const data = mctx.getImageData(0, 0, MASK_W, MASK_H).data;
-      for (let y = 0; y < MASK_H; y++) {
-        const spans: Span[] = [];
-        let start = -1;
-        for (let x = 0; x < MASK_W; x++) {
-          const on = data[(y * MASK_W + x) * 4] > 127;
-          if (on && start < 0) start = x;
-          if (!on && start >= 0) {
-            spans.push({
-              lon0: (start / MASK_W) * 360 - 180,
-              lon1: ((x - 1) / MASK_W) * 360 - 180,
-            });
-            start = -1;
+    /* ---------- land mask ---------- */
+    let MASK: Uint8Array | null = null;
+    {
+      const mc = document.createElement('canvas');
+      mc.width = MASK_W;
+      mc.height = MASK_H;
+      const mx = mc.getContext('2d', { willReadFrequently: true });
+      if (mx) {
+        mx.fillStyle = '#000';
+        mx.fillRect(0, 0, MASK_W, MASK_H);
+        mx.fillStyle = '#fff';
+        for (const ring of LAND_RINGS) {
+          mx.beginPath();
+          for (let i = 0; i < ring.length; i++) {
+            const [lon, lat] = ring[i];
+            const x = ((lon + 180) / 360) * MASK_W;
+            const y = ((90 - lat) / 180) * MASK_H;
+            if (i === 0) mx.moveTo(x, y);
+            else mx.lineTo(x, y);
           }
+          mx.closePath();
+          mx.fill();
         }
-        if (start >= 0) {
-          spans.push({ lon0: (start / MASK_W) * 360 - 180, lon1: 179.8 });
-        }
-        ROWS[y] = spans;
+        const d = mx.getImageData(0, 0, MASK_W, MASK_H).data;
+        MASK = new Uint8Array(MASK_W * MASK_H);
+        for (let i = 0, j = 0; i < d.length; i += 4, j++) MASK[j] = d[i];
       }
     }
 
-    /* ---------- paper layer ---------- */
+    /* ---------- paper ---------- */
     const paper = document.createElement('canvas');
     const pctx = paper.getContext('2d');
     let paperKey = '';
@@ -156,7 +144,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
       pctx.translate(cx + R * 0.05, cy + R * 0.98);
       pctx.scale(1, 0.1);
       const sh = pctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R * 0.88);
-      sh.addColorStop(0, 'rgba(23,23,26,0.14)');
+      sh.addColorStop(0, 'rgba(23,23,26,0.13)');
       sh.addColorStop(1, 'rgba(23,23,26,0)');
       pctx.fillStyle = sh;
       pctx.beginPath();
@@ -184,7 +172,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
           img.data[i] = val;
           img.data[i + 1] = val;
           img.data[i + 2] = val;
-          img.data[i + 3] = Math.random() * 16;
+          img.data[i + 3] = Math.random() * 14;
         }
         gc.putImageData(img, 0, 0);
       }
@@ -200,7 +188,55 @@ export default function Plate({ size = 420 }: { size?: number }) {
       }
     };
 
-    /* ---------- the turn of the sphere ---------- */
+    /* ---------- sphere buffer ---------- */
+    const sphere = document.createElement('canvas');
+    const sctx = sphere.getContext('2d');
+    let img: ImageData | null = null;
+    let bufW = 0;
+    let nxT: Float32Array = new Float32Array(0);
+    let nyT: Float32Array = new Float32Array(0);
+    let nzT: Float32Array = new Float32Array(0);
+    let shadeT: Float32Array = new Float32Array(0);
+    let inside: Uint8Array = new Uint8Array(0);
+
+    const buildBuffers = (S: number) => {
+      bufW = S;
+      sphere.width = S;
+      sphere.height = S;
+      img = sctx ? sctx.createImageData(S, S) : null;
+      const n = S * S;
+      nxT = new Float32Array(n);
+      nyT = new Float32Array(n);
+      nzT = new Float32Array(n);
+      shadeT = new Float32Array(n);
+      inside = new Uint8Array(n);
+      const c = -TILT * D2R;
+      const ct = Math.cos(c);
+      const st = Math.sin(c);
+      for (let y = 0; y < S; y++) {
+        for (let x = 0; x < S; x++) {
+          const i = y * S + x;
+          const u = ((x + 0.5) / S) * 2 - 1;
+          const vv = ((y + 0.5) / S) * 2 - 1;
+          const r2 = u * u + vv * vv;
+          if (r2 > 1) continue;
+          inside[i] = 1;
+          // undo the page tilt, then convert to a right-handed view normal
+          const ux = u * ct - vv * st;
+          const uy = u * st + vv * ct;
+          const X = ux;
+          const Y = -uy;
+          const Z = Math.sqrt(Math.max(0, 1 - r2));
+          nxT[i] = X;
+          nyT[i] = Y;
+          nzT[i] = Z;
+          const lam = Math.max(0, X * LIGHT.x + Y * LIGHT.y + Z * LIGHT.z);
+          shadeT[i] = 0.32 + 0.68 * Math.pow(lam, 0.9);
+        }
+      }
+    };
+
+    /* ---------- wash ---------- */
     const wash = document.createElement('canvas');
     const wctx = wash.getContext('2d');
     let washKey = '';
@@ -211,8 +247,6 @@ export default function Plate({ size = 420 }: { size?: number }) {
       wash.height = Math.round(h * dpr);
       wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       wctx.clearRect(0, 0, w, h);
-
-      wctx.save();
       wctx.beginPath();
       wctx.arc(cx, cy, R, 0, TAU);
       wctx.clip();
@@ -226,25 +260,18 @@ export default function Plate({ size = 420 }: { size?: number }) {
         R * 1.92,
       );
       term.addColorStop(0, 'rgba(244,241,233,0)');
-      term.addColorStop(0.46, 'rgba(244,241,233,0.08)');
-      term.addColorStop(0.7, 'rgba(244,241,233,0.52)');
-      term.addColorStop(0.88, 'rgba(244,241,233,0.86)');
-      term.addColorStop(1, 'rgba(244,241,233,0.96)');
+      term.addColorStop(0.5, 'rgba(244,241,233,0.06)');
+      term.addColorStop(0.76, 'rgba(244,241,233,0.34)');
+      term.addColorStop(0.92, 'rgba(244,241,233,0.76)');
+      term.addColorStop(1, 'rgba(244,241,233,0.94)');
       wctx.fillStyle = term;
       wctx.fillRect(cx - R, cy - R, R * 2, R * 2);
 
       wctx.beginPath();
       wctx.arc(cx, cy, R - 0.5, 0, TAU);
-      wctx.strokeStyle = 'rgba(23,23,26,0.32)';
+      wctx.strokeStyle = 'rgba(23,23,26,0.3)';
       wctx.lineWidth = 1;
       wctx.stroke();
-
-      wctx.beginPath();
-      wctx.arc(cx, cy, R - 1.2, Math.PI * 1.04, Math.PI * 1.4);
-      wctx.strokeStyle = 'rgba(255,255,255,0.5)';
-      wctx.lineWidth = 1.4;
-      wctx.stroke();
-      wctx.restore();
     };
 
     const resize = () => {
@@ -255,29 +282,48 @@ export default function Plate({ size = 420 }: { size?: number }) {
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       paperKey = '';
       washKey = '';
+      buildBuffers(Math.max(160, Math.round(w * 0.42 * 2 * 1.8 * quality)));
       pending = true;
     };
     resize();
 
-    // screen <-> sphere helpers, in device pixels
     const project = (latDeg: number, lonDeg: number, cx: number, cy: number, R: number) => {
       const lat = latDeg * D2R;
-      const d = (lonDeg - v.lon) * D2R;
+      const lon = lonDeg * D2R;
+      const p = view.current.lat * D2R;
+      const l0 = view.current.lon * D2R;
+      const x = Math.cos(lat) * Math.cos(lon);
+      const y = Math.sin(lat);
+      const z = Math.cos(lat) * Math.sin(lon);
+      const z1 = x * Math.cos(l0) + z * Math.sin(l0);
+      const X = -x * Math.sin(l0) + z * Math.cos(l0);
+      const Y = y * Math.cos(p) - z1 * Math.sin(p);
+      const Z = y * Math.sin(p) + z1 * Math.cos(p);
+      return { x: cx + R * X, y: cy - R * Y, front: Z > 0 };
+    };
+
+    const tilted = (x: number, y: number, cx: number, cy: number) => {
+      const a = TILT * D2R;
+      const dx = x - cx;
+      const dy = y - cy;
       return {
-        x: cx + R * Math.cos(lat) * Math.sin(d),
-        y: cy - R * Math.sin(lat),
+        x: cx + dx * Math.cos(a) - dy * Math.sin(a),
+        y: cy + dx * Math.sin(a) + dy * Math.cos(a),
       };
     };
 
-    const unproject = (x: number, y: number, cx: number, cy: number, R: number) => {
-      const py = (cy - y) / R;
-      const px = (x - cx) / R;
-      const cl = Math.sqrt(Math.max(0, 1 - py * py));
-      if (cl < 1e-6) return { lat: py > 0 ? 90 : -90, lon: v.lon };
-      const s = Math.max(-1, Math.min(1, px / cl));
-      return { lat: Math.asin(py) / D2R, lon: v.lon + Math.asin(s) / D2R };
+    const untilted = (x: number, y: number, cx: number, cy: number) => {
+      const a = -TILT * D2R;
+      const dx = x - cx;
+      const dy = y - cy;
+      return {
+        x: cx + dx * Math.cos(a) - dy * Math.sin(a),
+        y: cy + dx * Math.sin(a) + dy * Math.cos(a),
+      };
     };
 
     const render = () => {
@@ -287,6 +333,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
       if (paperKey !== `${w}|${v.zoom}`) {
         paintPaper(cx, cy, R);
+        if (shell) shell.style.backgroundImage = `url(${paper.toDataURL()})`;
         paperKey = `${w}|${v.zoom}`;
       }
       if (washKey !== `${w}|${v.zoom}`) {
@@ -294,14 +341,61 @@ export default function Plate({ size = 420 }: { size?: number }) {
         washKey = `${w}|${v.zoom}`;
       }
 
-      ctx.clearRect(0, 0, w, h);
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(TILT * D2R);
-      ctx.translate(-cx, -cy);
-      ctx.drawImage(paper, 0, 0, w, h);
+      // view -> globe: undo pitch, then undo the meridian rotation
+      const clon = Math.cos(v.lon * D2R);
+      const slon = Math.sin(v.lon * D2R);
+      const cp = Math.cos(v.lat * D2R);
+      const sp = Math.sin(v.lat * D2R);
 
-      ctx.save();
+      if (img && MASK) {
+        const px = img.data;
+        const S = bufW;
+        for (let i = 0, n = S * S; i < n; i++) {
+          if (!inside[i]) continue;
+          const X = nxT[i];
+          const Y = nyT[i];
+          const Z = nzT[i];
+
+          // inverse pitch
+          const y1 = Y * cp + Z * sp;
+          const z1 = -Y * sp + Z * cp;
+          // inverse meridian rotation
+          const gx = z1 * clon - X * slon;
+          const gz = z1 * slon + X * clon;
+          const gy = y1;
+
+          const lat = Math.asin(gy > 1 ? 1 : gy < -1 ? -1 : gy);
+          const lon = Math.atan2(gz, gx);
+
+          const u = (lon * 0.159154943 + 0.5) * MASK_W - 0.5;
+          const vv = (0.5 - lat * 0.318309886) * MASK_H - 0.5;
+          const x0 = u | 0;
+          const y0 = vv | 0;
+          const fx = u - x0;
+          const fy = vv - y0;
+          const xa = x0 < 0 ? 0 : x0 >= MASK_W - 1 ? MASK_W - 2 : x0;
+          const ya = y0 < 0 ? 0 : y0 >= MASK_H - 1 ? MASK_H - 2 : y0;
+          const i00 = ya * MASK_W + xa;
+          const a0 = MASK[i00] + (MASK[i00 + 1] - MASK[i00]) * fx;
+          const b0 = MASK[i00 + MASK_W] + (MASK[i00 + MASK_W + 1] - MASK[i00 + MASK_W]) * fx;
+          const land = a0 + (b0 - a0) * fy;
+          if (!land) continue;
+
+          // alpha must be written as an 8-bit value, not a 0..1 float
+          const a = (land / 255) * shadeT[i] * 0.95 * 255;
+          const o = i * 4;
+          px[o] = 24;
+          px[o + 1] = 24;
+          px[o + 2] = 28;
+          px[o + 3] = a > 255 ? 255 : a;
+        }
+      }
+
+      if (img && sctx) sctx.putImageData(img, 0, 0);
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(sphere, cx - R, cy - R, R * 2, R * 2);
+
       ctx.beginPath();
       ctx.arc(cx, cy, R, 0, TAU);
       ctx.clip();
@@ -309,112 +403,42 @@ export default function Plate({ size = 420 }: { size?: number }) {
       // graticule
       const lines = [new Path2D(), new Path2D(), new Path2D()];
       const addLine = (a: { x: number; y: number }, b: { x: number; y: number }, depth: number) => {
-        const band = depth > 0.55 ? 2 : depth > 0.12 ? 1 : 0;
+        if (depth < 0) return;
+        const band = depth > 0.55 ? 2 : depth > 0.1 ? 1 : 0;
         lines[band].moveTo(a.x, a.y);
         lines[band].lineTo(b.x, b.y);
       };
       for (let m = 0; m < 12; m++) {
         const lon = m * 30;
-        for (let s = -86; s < 86; s += 4) {
+        for (let s = -84; s < 84; s += 4) {
           const a = project(s, lon, cx, cy, R);
           const b = project(s + 4, lon, cx, cy, R);
-          addLine(a, b, Math.cos(s * D2R));
+          if (!a.front || !b.front) continue;
+          addLine(a, b, Math.min(a.front ? 1 : 0, 1) * Math.cos(s * D2R));
         }
       }
       for (let p = -60; p <= 60; p += 30) {
         for (let s = -90; s < 90; s += 3) {
           const a = project(p, v.lon + s, cx, cy, R);
           const b = project(p, v.lon + s + 3, cx, cy, R);
+          if (!a.front || !b.front) continue;
           addLine(a, b, Math.cos(p * D2R) * Math.cos(s * D2R));
         }
       }
-      ctx.lineWidth = 0.7;
-      [0.06, 0.09, 0.13].forEach((alpha, i) => {
+      ctx.lineWidth = 0.6;
+      [0.05, 0.075, 0.11].forEach((alpha, i) => {
         ctx.strokeStyle = `rgba(23,23,26,${alpha})`;
         ctx.stroke(lines[i]);
       });
 
-      // land, row by row
-      const land = new Path2D();
-      const stepY = 1 / dpr;
-      for (let y = cy - R; y <= cy + R; y += stepY) {
-        const py = (cy - y) / R;
-        if (py < -1 || py > 1) continue;
-        const lat = Math.asin(py) / D2R;
-        const row = ROWS[Math.max(0, Math.min(MASK_H - 1, Math.round(((90 - lat) / 180) * (MASK_H - 1))))];
-        if (!row || !row.length) continue;
-        const cl = Math.cos(lat * D2R);
-        if (cl < 1e-4) continue;
-
-        for (let i = 0; i < row.length; i++) {
-          const sp = row[i];
-          // spans run west -> east in one piece; test the three copies that can
-          // reach the visible meridian sweep, and never reorder them
-          const a0 = sp.lon0 - v.lon;
-          const a1 = sp.lon1 - v.lon;
-          for (let k = -1; k <= 1; k++) {
-            const lo = Math.max(a0 - 360 * k, -90);
-            const hi = Math.min(a1 - 360 * k, 90);
-            if (hi - lo < 0.02) continue;
-            const x0 = cx + R * cl * Math.sin(lo * D2R);
-            const x1 = cx + R * cl * Math.sin(hi * D2R);
-            if (x1 - x0 < 0.05) continue;
-            land.rect(x0, y, x1 - x0, stepY * 1.15);
-          }
-        }
-      }
-      ctx.fillStyle = 'rgba(26,26,30,0.13)';
-      ctx.fill(land);
-
-      // coastlines: the drawing itself, hairline
-      const coast = new Path2D();
-      for (const ring of LAND_RINGS) {
-        let prevVisible = false;
-        let px = 0;
-        let py = 0;
-        for (let i = 0; i < ring.length; i++) {
-          const [lon, lat] = ring[i];
-          const d = ((lon - v.lon + 540) % 360) - 180;
-          const visible = Math.abs(d) < 90;
-          if (visible) {
-            const la = lat * D2R;
-            const x = cx + R * Math.cos(la) * Math.sin(d * D2R);
-            const y = cy - R * Math.sin(la);
-            if (prevVisible) {
-              coast.moveTo(px, py);
-              coast.lineTo(x, y);
-            }
-            px = x;
-            py = y;
-          }
-          prevVisible = visible;
-        }
-      }
-      ctx.lineWidth = 0.55;
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = 'rgba(24,24,28,0.9)';
-      ctx.stroke(coast);
-
+      ctx.drawImage(wash, cx - R, cy - R, R * 2, R * 2);
       ctx.restore();
 
-      ctx.drawImage(wash, 0, 0, w, h);
-
-      // pins, crosshair and readout ride on the tilted sphere
-      const toScreen = (lat: number, lon: number) => {
-        const p = project(lat, lon, cx, cy, R);
-        const dx = p.x - cx;
-        const dy = p.y - cy;
-        const a = TILT * D2R;
-        return {
-          x: cx + dx * Math.cos(a) - dy * Math.sin(a),
-          y: cy + dx * Math.sin(a) + dy * Math.cos(a),
-        };
-      };
-
+      // pins
       v.pins.forEach((pin, i) => {
-        const d = ((pin.lon - v.lon + 540) % 360) - 180;
-        if (Math.abs(d) > 90) return;
-        const q = toScreen(pin.lat, pin.lon);
+        const p = project(pin.lat, pin.lon, cx, cy, R);
+        if (!p.front) return;
+        const q = tilted(p.x, p.y, cx, cy);
         const dx = q.x - cx;
         const dy = q.y - cy;
         const len = Math.hypot(dx, dy) || 1;
@@ -454,16 +478,20 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
       const hv = v.hover;
       if (hv) {
-        // undo the tilt, then read the sphere
-        const a = -TILT * D2R;
-        const dx = hv.x - cx;
-        const dy = hv.y - cy;
-        const ux = dx * Math.cos(a) - dy * Math.sin(a) + cx;
-        const uy = dx * Math.sin(a) + dy * Math.cos(a) + cy;
-        if (Math.hypot(ux - cx, uy - cy) <= R) {
-          const { lat, lon } = unproject(ux, uy, cx, cy, R);
-          const norm = ((lon + 540) % 360) - 180;
-          setCoord(`${fmt(lat, 'N', 'S')} ${fmt(norm, 'E', 'W')}`);
+        const u = untilted(hv.x, hv.y, cx, cy);
+        const dx = (u.x - cx) / R;
+        const dy = (cy - u.y) / R;
+        const r2 = dx * dx + dy * dy;
+        if (r2 <= 1) {
+          const dz = Math.sqrt(Math.max(0, 1 - r2));
+          const y1 = dy * cp + dz * sp;
+          const z1 = -dy * sp + dz * cp;
+          const gx = z1 * clon - dx * slon;
+          const gy = y1;
+          const gz = z1 * slon + dx * clon;
+          const lat = Math.asin(Math.max(-1, Math.min(1, gy))) / D2R;
+          const lon = Math.atan2(gz, gx) / D2R;
+          setCoord(`${fmt(lat, 'N', 'S')} ${fmt(lon, 'E', 'W')}`);
 
           ctx.strokeStyle = 'rgba(138,51,36,0.85)';
           ctx.lineWidth = 1;
@@ -482,8 +510,6 @@ export default function Plate({ size = 420 }: { size?: number }) {
           setCoord(null);
         }
       }
-
-      ctx.restore();
     };
 
     const step = (dt: number) => {
@@ -494,9 +520,12 @@ export default function Plate({ size = 420 }: { size?: number }) {
       }
       const frames = dt / 16.7;
       if (!quiet) {
-        v.lon += v.vlon * frames + (v.spin && !v.drag && !reduced ? 0.045 * frames : 0);
+        v.lon += v.vlon * frames + (v.spin && !v.drag && !reduced ? 0.03 * frames : 0);
+        v.lat += v.vlat * frames;
       }
       v.vlon *= Math.pow(0.94, frames);
+      v.vlat *= Math.pow(0.9, frames);
+      v.lat = Math.max(-80, Math.min(80, v.lat));
       if (v.lon > 180) v.lon -= 360;
       if (v.lon < -180) v.lon += 360;
     };
@@ -507,18 +536,26 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
       const now = performance.now();
       const dt = Math.min(64, now - lastRender);
-      const coasting = Math.abs(v.vlon) > 0.002;
+      const coasting = Math.abs(v.vlon) + Math.abs(v.vlat) > 0.002;
       const moving = v.spin || v.drag || v.hover || pending || coasting;
       if (!moving) return;
       if (idleNow && !pending && !v.hover) return;
 
       const cheapOnly = !v.drag && !v.hover && !pending && !coasting;
-      if (cheapOnly && dt < 41) return;
+      if (dt < (cheapOnly ? 95 : 33)) return;
 
+      const t0 = performance.now();
       lastRender = now;
       pending = false;
       step(dt);
       render();
+      const cost = performance.now() - t0;
+
+      // if frames get expensive, render the sphere smaller and let it scale
+      if (cost > 11 && quality > 0.7) {
+        quality = 0.7;
+        buildBuffers(Math.max(160, Math.round(w * 0.42 * 2 * 1.8 * quality)));
+      }
     };
 
     raf = requestAnimationFrame(loop);
@@ -553,9 +590,10 @@ export default function Plate({ size = 420 }: { size?: number }) {
     };
 
     const down = (e: PointerEvent) => {
-      const { x } = local(e);
+      const { x, y } = local(e);
       v.drag = true;
       v.lastX = x;
+      v.lastY = y;
       canvas.setPointerCapture(e.pointerId);
       canvas.style.cursor = 'grabbing';
     };
@@ -565,13 +603,17 @@ export default function Plate({ size = 420 }: { size?: number }) {
       v.hover = { x, y };
       if (!v.drag) return;
       const dx = x - v.lastX;
+      const dy = y - v.lastY;
       v.lastX = x;
-      v.lon += dx * 0.4;
+      v.lastY = y;
+      v.lon += dx * 0.35;
+      v.lat += dy * 0.3;
       v.vlon = dx * 0.06;
+      v.vlat = dy * 0.05;
     };
 
     const up = (e: PointerEvent) => {
-      const wasDrag = Math.abs(v.vlon) > 0.4;
+      const wasDrag = Math.abs(v.vlon) + Math.abs(v.vlat) > 0.4;
       v.drag = false;
       canvas.style.cursor = 'grab';
       if (wasDrag) return;
@@ -583,16 +625,27 @@ export default function Plate({ size = 420 }: { size?: number }) {
       const a = -TILT * D2R;
       const dx = x - cx;
       const dy = y - cy;
-      const ux = dx * Math.cos(a) - dy * Math.sin(a) + cx;
-      const uy = dx * Math.sin(a) + dy * Math.cos(a) + cy;
-      if (Math.hypot(ux - cx, uy - cy) > R * 0.995) return;
+      const ux = dx * Math.cos(a) - dy * Math.sin(a);
+      const uy = dx * Math.sin(a) + dy * Math.cos(a);
+      const r2 = (ux * ux + uy * uy) / (R * R);
+      if (r2 > 1) return;
 
-      const py = (cy - uy) / R;
-      const px = (ux - cx) / R;
-      const cl = Math.sqrt(Math.max(0, 1 - py * py));
-      const lat = Math.asin(Math.max(-1, Math.min(1, py))) / D2R;
-      let lon = v.lon + Math.asin(Math.max(-1, Math.min(1, px / Math.max(cl, 1e-6)))) / D2R;
-      lon = ((lon + 540) % 360) - 180;
+      const X = ux / R;
+      const Y = -uy / R;
+      const Z = Math.sqrt(Math.max(0, 1 - (X * X + Y * Y)));
+
+      const clon = Math.cos(v.lon * D2R);
+      const slon = Math.sin(v.lon * D2R);
+      const cp = Math.cos(v.lat * D2R);
+      const sp = Math.sin(v.lat * D2R);
+      const y1 = Y * cp + Z * sp;
+      const z1 = -Y * sp + Z * cp;
+      const gx = z1 * clon - X * slon;
+      const gy = y1;
+      const gz = z1 * slon + X * clon;
+
+      const lat = Math.asin(Math.max(-1, Math.min(1, gy))) / D2R;
+      const lon = Math.atan2(gz, gx) / D2R;
 
       const near = Math.abs(lat - CHALLENGER.lat) < 1.4 && Math.abs(lon - CHALLENGER.lon) < 1.6;
       v.pins = [
@@ -619,6 +672,8 @@ export default function Plate({ size = 420 }: { size?: number }) {
       const s = 6;
       if (e.key === 'ArrowLeft') v.lon -= s;
       else if (e.key === 'ArrowRight') v.lon += s;
+      else if (e.key === 'ArrowUp') v.lat -= s;
+      else if (e.key === 'ArrowDown') v.lat += s;
       else if (e.key === '+' || e.key === '=') {
         v.zoom = Math.min(2.1, v.zoom * 1.08);
         setZoomLabel(`${v.zoom.toFixed(1)}×`);
@@ -667,12 +722,12 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
   return (
     <figure>
-      <div ref={shellRef} className="relative">
+      <div ref={shellRef} className="relative" style={{ backgroundSize: '100% 100%' }}>
         <canvas
           ref={canvasRef}
           tabIndex={0}
           role="img"
-          aria-label="Interactive globe. Drag to turn, wheel to zoom, click to pin a coordinate."
+          aria-label="Interactive globe. Drag to turn in any direction, wheel to zoom, click to pin a coordinate."
           className="mx-auto block focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent"
         />
         {coord && (

@@ -47,6 +47,12 @@ export default function PointerLayer() {
       );
 
     const draw = (t: number) => {
+      const busy = live || marks.length > 0;
+      if (!busy) {
+        raf = 0;
+        ctx.clearRect(0, 0, w, h);
+        return;
+      }
       raf = requestAnimationFrame(draw);
       ctx.clearRect(0, 0, w, h);
 
@@ -86,7 +92,11 @@ export default function PointerLayer() {
       }
     };
 
-    raf = requestAnimationFrame(draw);
+    const wake = () => {
+      if (!raf) raf = requestAnimationFrame(draw);
+    };
+
+    wake();
     window.addEventListener('resize', resize);
 
     let hx = -999;
@@ -99,15 +109,18 @@ export default function PointerLayer() {
       hx = x;
       hy = y;
       live = isPaper(document.elementFromPoint(x, y));
+      wake();
     };
     const onLeave = () => {
       live = false;
+      wake();
     };
     const onDown = (e: PointerEvent) => {
       if (reduced) return;
       if (!isPaper(document.elementFromPoint(e.clientX, e.clientY))) return;
       marks.push({ x: e.clientX, y: e.clientY, t: performance.now() });
       if (marks.length > 6) marks.shift();
+      wake();
     };
 
     window.addEventListener('pointermove', onMove, { passive: true });
@@ -115,7 +128,7 @@ export default function PointerLayer() {
     window.addEventListener('pointerdown', onDown, { passive: true });
 
     return () => {
-      cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerleave', onLeave);
