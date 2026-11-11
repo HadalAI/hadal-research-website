@@ -620,8 +620,10 @@ export default function Plate({ size = 420 }: { size?: number }) {
     const move = (e: PointerEvent) => {
       const { x, y } = local(e);
       v.hover = { x, y };
-      v.hoverDirty = true;
-      if (!v.drag) return;
+      if (!v.drag) {
+        v.hoverDirty = true;
+        return;
+      }
       const dx = x - v.lastX;
       const dy = y - v.lastY;
       v.lastX = x;
