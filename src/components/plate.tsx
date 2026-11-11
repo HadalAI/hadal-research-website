@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { GLOBE_DATA } from '@/lib/globe-data';
+import { LAND_DOTS } from '@/lib/land-dots';
 import { CHALLENGER } from '@/lib/depth-store';
 
 /**
@@ -26,7 +26,14 @@ function toVec(lon: number, lat: number): Vec {
   return { x: cl * Math.cos(lon * D2R), y: Math.sin(lat * D2R), z: cl * Math.sin(lon * D2R) };
 }
 
-const LAND: Vec[] = (GLOBE_DATA.l as Cell[]).map(([lon, lat]) => toVec(lon, lat));
+const LAND: Vec[] = LAND_DOTS.map(([lon, lat]) => toVec(lon, lat));
+
+// sub-pixel jitter: breaks the arithmetic spiral without changing density
+const JITTER = LAND_DOTS.map((_, i) => {
+  const a = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+  const b = Math.sin(i * 269.5 + 183.3) * 28001.8384;
+  return { x: (a - Math.floor(a) - 0.5) * 1.9, y: (b - Math.floor(b) - 0.5) * 1.9 };
+});
 
 function rotate(v: Vec, lon: number, lat: number): Vec {
   const cy = Math.cos(lon * D2R);
@@ -113,6 +120,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
     const body = document.createElement('canvas');
     const bctx = body.getContext('2d');
     let bodyKey = '';
+    let grain: HTMLCanvasElement | null = null;
 
     const paintBody = (cx: number, cy: number, R: number) => {
       if (!bctx) return;
@@ -121,58 +129,72 @@ export default function Plate({ size = 420 }: { size?: number }) {
       bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       bctx.clearRect(0, 0, w, h);
 
+      // contact shadow
       bctx.save();
-      bctx.translate(cx, cy + R * 1.02);
-      bctx.scale(1, 0.13);
-      const sh = bctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R * 1.02);
-      sh.addColorStop(0, 'rgba(23,23,26,0.16)');
+      bctx.translate(cx + R * 0.05, cy + R * 0.99);
+      bctx.scale(1, 0.12);
+      const sh = bctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R * 0.92);
+      sh.addColorStop(0, 'rgba(23,23,26,0.17)');
       sh.addColorStop(1, 'rgba(23,23,26,0)');
       bctx.fillStyle = sh;
       bctx.beginPath();
-      bctx.arc(0, 0, R * 1.02, 0, TAU);
+      bctx.arc(0, 0, R * 0.92, 0, TAU);
       bctx.fill();
       bctx.restore();
 
-      const g = bctx.createRadialGradient(cx - R * 0.34, cy - R * 0.42, R * 0.05, cx, cy, R * 1.08);
-      g.addColorStop(0, '#fbf9f3');
-      g.addColorStop(0.55, '#efeade');
-      g.addColorStop(0.72, '#ece7da');
-      g.addColorStop(1, '#cdc6b2');
+      // ocean: a quiet sheet, lit from the upper left
+      const g = bctx.createLinearGradient(cx - R * 0.8, cy - R * 0.8, cx + R * 0.9, cy + R * 0.9);
+      g.addColorStop(0, '#f9f6ef');
+      g.addColorStop(0.5, '#efebdf');
+      g.addColorStop(1, '#e0dac6');
       bctx.beginPath();
       bctx.arc(cx, cy, R, 0, TAU);
       bctx.fillStyle = g;
       bctx.fill();
 
-      bctx.save();
+      // the edge of the sphere turns away from you
+      const rim = bctx.createRadialGradient(cx, cy, R * 0.82, cx, cy, R);
+      rim.addColorStop(0, 'rgba(23,23,26,0)');
+      rim.addColorStop(0.75, 'rgba(23,23,26,0.02)');
+      rim.addColorStop(1, 'rgba(23,23,26,0.11)');
       bctx.beginPath();
       bctx.arc(cx, cy, R, 0, TAU);
-      bctx.clip();
+      bctx.fillStyle = rim;
+      bctx.fill();
 
-      const term = bctx.createRadialGradient(cx - R * 0.45, cy - R * 0.5, R * 0.15, cx, cy, R * 1.02);
-      term.addColorStop(0, 'rgba(255,255,255,0)');
-      term.addColorStop(0.5, 'rgba(23,23,26,0.03)');
-      term.addColorStop(0.8, 'rgba(23,23,26,0.14)');
-      term.addColorStop(1, 'rgba(23,23,26,0.4)');
-      bctx.fillStyle = term;
-      bctx.fillRect(cx - R, cy - R, R * 2, R * 2);
-
-      const glow = bctx.createRadialGradient(cx - R * 0.34, cy - R * 0.38, 0, cx - R * 0.34, cy - R * 0.38, R * 0.62);
-      glow.addColorStop(0, 'rgba(255,255,255,0.42)');
-      glow.addColorStop(1, 'rgba(255,255,255,0)');
-      bctx.fillStyle = glow;
-      bctx.fillRect(cx - R, cy - R, R * 2, R * 2);
-      bctx.restore();
+      if (!grain) {
+        grain = document.createElement('canvas');
+        grain.width = 96;
+        grain.height = 96;
+        const gc = grain.getContext('2d');
+        if (gc) {
+          const img = gc.createImageData(96, 96);
+          for (let i = 0; i < img.data.length; i += 4) {
+            const v = 23 + Math.random() * 40;
+            img.data[i] = v;
+            img.data[i + 1] = v;
+            img.data[i + 2] = v;
+            img.data[i + 3] = Math.random() * 26;
+          }
+          gc.putImageData(img, 0, 0);
+        }
+      }
+      const pattern = bctx.createPattern(grain, 'repeat');
+      if (pattern) {
+        bctx.save();
+        bctx.beginPath();
+        bctx.arc(cx, cy, R, 0, TAU);
+        bctx.clip();
+        bctx.globalAlpha = 0.5;
+        bctx.fillStyle = pattern;
+        bctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+        bctx.restore();
+      }
 
       bctx.beginPath();
-      bctx.arc(cx, cy, R, 0, TAU);
-      bctx.strokeStyle = 'rgba(23,23,26,0.3)';
+      bctx.arc(cx, cy, R - 0.5, 0, TAU);
+      bctx.strokeStyle = 'rgba(23,23,26,0.24)';
       bctx.lineWidth = 1;
-      bctx.stroke();
-
-      bctx.beginPath();
-      bctx.arc(cx, cy, R - 1, Math.PI * 1.02, Math.PI * 1.42);
-      bctx.strokeStyle = 'rgba(255,255,255,0.75)';
-      bctx.lineWidth = 1.6;
       bctx.stroke();
     };
 
@@ -203,6 +225,11 @@ export default function Plate({ size = 420 }: { size?: number }) {
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(body, 0, 0, w, h);
 
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, TAU);
+      ctx.clip();
+
       const project = (p: Vec) => {
         const k = d / (d - p.z);
         return { x: cx + R * p.x * k, y: cy - R * p.y * k, z: p.z };
@@ -217,26 +244,26 @@ export default function Plate({ size = 420 }: { size?: number }) {
           const b = project(rotate(toVec(lon, s + 4), v.lon, v.lat));
           if (a.z < -0.15 || b.z < -0.15) continue;
           const side = 1 - 0.6 * Math.max(0, Math.min(1, (a.x - cx) / R + 0.45));
-          const alpha = (0.03 + Math.max(0, (a.z + 0.15) / 1.15) * 0.11) * side;
-          const band = alpha > 0.07 ? 2 : alpha > 0.04 ? 1 : 0;
+          const alpha = (0.015 + Math.max(0, (a.z + 0.15) / 1.15) * 0.075) * side;
+          const band = alpha > 0.05 ? 2 : alpha > 0.028 ? 1 : 0;
           lines[band].moveTo(a.x, a.y);
           lines[band].lineTo(b.x, b.y);
         }
       }
-      for (let p = -75; p <= 75; p += 15) {
+      for (let p = -60; p <= 60; p += 30) {
         for (let s = 0; s < 360; s += 4) {
           const a = project(rotate(toVec(s, p), v.lon, v.lat));
           const b = project(rotate(toVec(s + 4, p), v.lon, v.lat));
           if (a.z < -0.15 || b.z < -0.15) continue;
           const side = 1 - 0.6 * Math.max(0, Math.min(1, (a.x - cx) / R + 0.45));
-          const alpha = (0.03 + Math.max(0, (a.z + 0.15) / 1.15) * 0.1) * side;
-          const band = alpha > 0.07 ? 2 : alpha > 0.04 ? 1 : 0;
+          const alpha = (0.015 + Math.max(0, (a.z + 0.15) / 1.15) * 0.07) * side;
+          const band = alpha > 0.05 ? 2 : alpha > 0.028 ? 1 : 0;
           lines[band].moveTo(a.x, a.y);
           lines[band].lineTo(b.x, b.y);
         }
       }
-      ctx.lineWidth = 0.8;
-      const lineAlpha = [0.035, 0.075, 0.12];
+      ctx.lineWidth = 0.7;
+      const lineAlpha = [0.03, 0.055, 0.085];
       lines.forEach((path, i) => {
         ctx.strokeStyle = `rgba(23,23,26,${lineAlpha[i]})`;
         ctx.stroke(path);
@@ -246,20 +273,25 @@ export default function Plate({ size = 420 }: { size?: number }) {
       const dots = Array.from({ length: BUCKETS }, () => new Path2D());
       for (let i = 0; i < LAND.length; i++) {
         const r = rotate(LAND[i], v.lon, v.lat);
-        if (r.z < -0.25) continue;
+        if (r.z <= 0.02) continue;
         const q = project(r);
         const lambert = Math.max(0, r.x * LIGHT.x + r.y * LIGHT.y + r.z * LIGHT.z);
-        const lit = 0.16 + Math.pow(lambert, 1.5) * 0.84;
-        const depth = Math.max(0, (r.z + 0.25) / 1.25);
-        const radius = 0.5 + Math.pow(lit, 1.15) * 1.15 * depth;
-        const alpha = 0.07 + Math.pow(lit, 1.35) * 0.85 * depth;
+        const lit = 0.24 + Math.pow(lambert, 1.25) * 0.76;
+        const facing = 0.45 + 0.55 * r.z;
+        const radius = (0.6 + 0.85 * lit) * (0.55 + 0.45 * r.z);
+        const alpha = Math.min(1, 0.2 + 0.85 * lit * facing);
         const band = Math.min(BUCKETS - 1, Math.floor(alpha * BUCKETS));
-        dots[band].rect(q.x - radius, q.y - radius, radius * 2, radius * 2);
+        const jx = q.x + JITTER[i].x;
+        const jy = q.y + JITTER[i].y;
+        dots[band].moveTo(jx + radius, jy);
+        dots[band].arc(jx, jy, radius, 0, TAU);
       }
       dots.forEach((path, i) => {
         ctx.fillStyle = `rgba(23,23,26,${((i + 0.5) / BUCKETS).toFixed(3)})`;
         ctx.fill(path);
       });
+
+      ctx.restore();
 
       v.pins.forEach((pin, i) => {
         const p = rotate(toVec(pin.lon, pin.lat), v.lon, v.lat);
