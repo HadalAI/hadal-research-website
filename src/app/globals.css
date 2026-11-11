@@ -144,12 +144,6 @@ body {
 }
 
 /* printed plate frame */
-.plate {
-  border: 1px solid var(--rule);
-  background: #f7f4ed;
-  padding: 18px;
-}
-
 /* hairline table used in papers */
 .paper-table {
   width: 100%;

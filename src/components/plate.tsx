@@ -5,11 +5,12 @@ import { GLOBE_DATA } from '@/lib/globe-data';
 import { CHALLENGER } from '@/lib/depth-store';
 
 /**
- * Plate I — a lit point-cloud earth you can handle.
+ * A lit point-cloud earth that sits on the paper, no frame.
  *
- * Perspective projection, lambert shading and a shaded sphere body give it depth
- * on paper. Drag to turn, wheel to zoom, click to pin a coordinate, arrows to
- * steer, r to reset, space to stop the spin.
+ * Cost control: the sphere body, its shadow and the shading overlay are painted
+ * once into an offscreen layer and blitted; dots and graticule are accumulated
+ * into a handful of Path2D batches so a frame costs about eight fills instead of
+ * six thousand circles. Nothing is drawn at all when the plate is still.
  */
 
 type Vec = { x: number; y: number; z: number };
@@ -17,6 +18,8 @@ type Pin = { lat: number; lon: number; label?: string };
 type Cell = [number, number];
 
 const D2R = Math.PI / 180;
+const TAU = Math.PI * 2;
+const BUCKETS = 5;
 
 function toVec(lon: number, lat: number): Vec {
   const cl = Math.cos(lat * D2R);
@@ -38,6 +41,8 @@ function rotate(v: Vec, lon: number, lat: number): Vec {
 function fmt(v: number, pos: string, neg: string) {
   return `${Math.abs(v).toFixed(1)}°${v >= 0 ? pos : neg}`;
 }
+
+const LIGHT = { x: -0.42, y: 0.5, z: 0.76 };
 
 export default function Plate({ size = 420 }: { size?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -62,8 +67,6 @@ export default function Plate({ size = 420 }: { size?: number }) {
   const [pins, setPins] = useState<Pin[]>([]);
   const [zoomLabel, setZoomLabel] = useState('1.0×');
   const [idle, setIdle] = useState(false);
-  const idleRef = useRef(false);
-  const lastInput = useRef(Date.now());
 
   const reset = useCallback(() => {
     const v = view.current;
@@ -93,98 +96,131 @@ export default function Plate({ size = 420 }: { size?: number }) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const v = view.current;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const v = view.current;
 
     let raf = 0;
     let w = size;
     let h = size;
+    let visible = true;
+    let pending = true;
+    let frame = 0;
+    let lastRender = 0;
+    let lastInput = Date.now();
+    let idleNow = false;
+
+    const body = document.createElement('canvas');
+    const bctx = body.getContext('2d');
+    let bodyKey = '';
+
+    const paintBody = (cx: number, cy: number, R: number) => {
+      if (!bctx) return;
+      body.width = Math.round(w * dpr);
+      body.height = Math.round(h * dpr);
+      bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      bctx.clearRect(0, 0, w, h);
+
+      bctx.save();
+      bctx.translate(cx, cy + R * 1.02);
+      bctx.scale(1, 0.13);
+      const sh = bctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R * 1.02);
+      sh.addColorStop(0, 'rgba(23,23,26,0.16)');
+      sh.addColorStop(1, 'rgba(23,23,26,0)');
+      bctx.fillStyle = sh;
+      bctx.beginPath();
+      bctx.arc(0, 0, R * 1.02, 0, TAU);
+      bctx.fill();
+      bctx.restore();
+
+      const g = bctx.createRadialGradient(cx - R * 0.34, cy - R * 0.42, R * 0.05, cx, cy, R * 1.08);
+      g.addColorStop(0, '#fbf9f3');
+      g.addColorStop(0.55, '#efeade');
+      g.addColorStop(0.72, '#ece7da');
+      g.addColorStop(1, '#cdc6b2');
+      bctx.beginPath();
+      bctx.arc(cx, cy, R, 0, TAU);
+      bctx.fillStyle = g;
+      bctx.fill();
+
+      bctx.save();
+      bctx.beginPath();
+      bctx.arc(cx, cy, R, 0, TAU);
+      bctx.clip();
+
+      const term = bctx.createRadialGradient(cx - R * 0.45, cy - R * 0.5, R * 0.15, cx, cy, R * 1.02);
+      term.addColorStop(0, 'rgba(255,255,255,0)');
+      term.addColorStop(0.5, 'rgba(23,23,26,0.03)');
+      term.addColorStop(0.8, 'rgba(23,23,26,0.14)');
+      term.addColorStop(1, 'rgba(23,23,26,0.4)');
+      bctx.fillStyle = term;
+      bctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+
+      const glow = bctx.createRadialGradient(cx - R * 0.34, cy - R * 0.38, 0, cx - R * 0.34, cy - R * 0.38, R * 0.62);
+      glow.addColorStop(0, 'rgba(255,255,255,0.42)');
+      glow.addColorStop(1, 'rgba(255,255,255,0)');
+      bctx.fillStyle = glow;
+      bctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+      bctx.restore();
+
+      bctx.beginPath();
+      bctx.arc(cx, cy, R, 0, TAU);
+      bctx.strokeStyle = 'rgba(23,23,26,0.3)';
+      bctx.lineWidth = 1;
+      bctx.stroke();
+
+      bctx.beginPath();
+      bctx.arc(cx, cy, R - 1, Math.PI * 1.02, Math.PI * 1.42);
+      bctx.strokeStyle = 'rgba(255,255,255,0.75)';
+      bctx.lineWidth = 1.6;
+      bctx.stroke();
+    };
 
     const resize = () => {
-      const cs = getComputedStyle(shell);
-      const avail =
-        shell.clientWidth - parseFloat(cs.paddingLeft || '0') - parseFloat(cs.paddingRight || '0');
-      w = Math.max(180, Math.min(avail || size, size));
+      w = Math.max(180, Math.min(shell.clientWidth || size, size));
       h = w;
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      bodyKey = '';
+      pending = true;
     };
     resize();
 
-    const draw = () => {
-      raf = requestAnimationFrame(draw);
+    const render = () => {
       const cx = w / 2;
       const cy = h / 2;
       const R = w * 0.42 * v.zoom;
       const d = 3.1;
 
-      const quiet = Date.now() - lastInput.current > 80000;
-      if (quiet !== idleRef.current) {
-        idleRef.current = quiet;
-        setIdle(quiet);
+      if (bodyKey !== `${w}|${v.zoom}`) {
+        paintBody(cx, cy, R);
+        bodyKey = `${w}|${v.zoom}`;
       }
 
-      v.lon += v.vlon + (v.spin && !v.drag && !reduced && !quiet ? 0.045 : 0);
-      v.lat += v.vlat;
-      v.vlon *= 0.94;
-      v.vlat *= 0.9;
-      v.lat = Math.max(-78, Math.min(78, v.lat));
-
       ctx.clearRect(0, 0, w, h);
-
-      // contact shadow on the paper
-      ctx.save();
-      ctx.translate(cx, cy + R * 1.02);
-      ctx.scale(1, 0.13);
-      const sh = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R * 1.02);
-      sh.addColorStop(0, 'rgba(23,23,26,0.16)');
-      sh.addColorStop(1, 'rgba(23,23,26,0)');
-      ctx.fillStyle = sh;
-      ctx.beginPath();
-      ctx.arc(0, 0, R * 1.02, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      const body = ctx.createRadialGradient(cx - R * 0.34, cy - R * 0.42, R * 0.05, cx, cy, R * 1.08);
-      body.addColorStop(0, '#fbf9f3');
-      body.addColorStop(0.55, '#efeade');
-      body.addColorStop(0.72, '#ece7da');
-      body.addColorStop(1, '#cdc6b2');
-      ctx.beginPath();
-      ctx.arc(cx, cy, R, 0, Math.PI * 2);
-      ctx.fillStyle = body;
-      ctx.fill();
-
-      // nothing on the sphere may spill past the limb
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, R, 0, Math.PI * 2);
-      ctx.clip();
+      ctx.drawImage(body, 0, 0, w, h);
 
       const project = (p: Vec) => {
         const k = d / (d - p.z);
         return { x: cx + R * p.x * k, y: cy - R * p.y * k, z: p.z };
       };
 
-      // graticule
-      ctx.lineWidth = 0.8;
+      // graticule: three depth bands, one stroke each
+      const lines = [new Path2D(), new Path2D(), new Path2D()];
       for (let m = 0; m < 12; m++) {
         const lon = m * 30;
         for (let s = -84; s < 84; s += 4) {
           const a = project(rotate(toVec(lon, s), v.lon, v.lat));
           const b = project(rotate(toVec(lon, s + 4), v.lon, v.lat));
           if (a.z < -0.15 || b.z < -0.15) continue;
-          const sideFade = 1 - 0.6 * Math.max(0, Math.min(1, (a.x - cx) / R + 0.45));
-          const alpha = (0.03 + Math.max(0, (a.z + 0.15) / 1.15) * 0.11) * sideFade;
-          ctx.strokeStyle = `rgba(23,23,26,${alpha})`;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
+          const side = 1 - 0.6 * Math.max(0, Math.min(1, (a.x - cx) / R + 0.45));
+          const alpha = (0.03 + Math.max(0, (a.z + 0.15) / 1.15) * 0.11) * side;
+          const band = alpha > 0.07 ? 2 : alpha > 0.04 ? 1 : 0;
+          lines[band].moveTo(a.x, a.y);
+          lines[band].lineTo(b.x, b.y);
         }
       }
       for (let p = -75; p <= 75; p += 15) {
@@ -192,79 +228,54 @@ export default function Plate({ size = 420 }: { size?: number }) {
           const a = project(rotate(toVec(s, p), v.lon, v.lat));
           const b = project(rotate(toVec(s + 4, p), v.lon, v.lat));
           if (a.z < -0.15 || b.z < -0.15) continue;
-          const sideFade = 1 - 0.6 * Math.max(0, Math.min(1, (a.x - cx) / R + 0.45));
-          const alpha = (0.03 + Math.max(0, (a.z + 0.15) / 1.15) * 0.1) * sideFade;
-          ctx.strokeStyle = `rgba(23,23,26,${alpha})`;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
+          const side = 1 - 0.6 * Math.max(0, Math.min(1, (a.x - cx) / R + 0.45));
+          const alpha = (0.03 + Math.max(0, (a.z + 0.15) / 1.15) * 0.1) * side;
+          const band = alpha > 0.07 ? 2 : alpha > 0.04 ? 1 : 0;
+          lines[band].moveTo(a.x, a.y);
+          lines[band].lineTo(b.x, b.y);
         }
       }
+      ctx.lineWidth = 0.8;
+      const lineAlpha = [0.035, 0.075, 0.12];
+      lines.forEach((path, i) => {
+        ctx.strokeStyle = `rgba(23,23,26,${lineAlpha[i]})`;
+        ctx.stroke(path);
+      });
 
-      // land: dots sized and lit by the facet normal
-      const L = { x: -0.42, y: 0.5, z: 0.76 };
+      // land: five brightness batches
+      const dots = Array.from({ length: BUCKETS }, () => new Path2D());
       for (let i = 0; i < LAND.length; i++) {
         const r = rotate(LAND[i], v.lon, v.lat);
         if (r.z < -0.25) continue;
         const q = project(r);
-        const lambert = Math.max(0, r.x * L.x + r.y * L.y + r.z * L.z);
+        const lambert = Math.max(0, r.x * LIGHT.x + r.y * LIGHT.y + r.z * LIGHT.z);
         const lit = 0.16 + Math.pow(lambert, 1.5) * 0.84;
         const depth = Math.max(0, (r.z + 0.25) / 1.25);
         const radius = 0.5 + Math.pow(lit, 1.15) * 1.15 * depth;
-        ctx.fillStyle = `rgba(23,23,26,${(0.07 + Math.pow(lit, 1.35) * 0.85 * depth).toFixed(3)})`;
-        ctx.beginPath();
-        ctx.arc(q.x, q.y, radius, 0, Math.PI * 2);
-        ctx.fill();
+        const alpha = 0.07 + Math.pow(lit, 1.35) * 0.85 * depth;
+        const band = Math.min(BUCKETS - 1, Math.floor(alpha * BUCKETS));
+        dots[band].rect(q.x - radius, q.y - radius, radius * 2, radius * 2);
       }
-
-      // terminator: the far side of the sphere falls away
-      const term = ctx.createRadialGradient(cx - R * 0.45, cy - R * 0.5, R * 0.15, cx, cy, R * 1.02);
-      term.addColorStop(0, 'rgba(255,255,255,0)');
-      term.addColorStop(0.5, 'rgba(23,23,26,0.03)');
-      term.addColorStop(0.8, 'rgba(23,23,26,0.14)');
-      term.addColorStop(1, 'rgba(23,23,26,0.4)');
-      ctx.fillStyle = term;
-      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
-
-      const glow = ctx.createRadialGradient(cx - R * 0.34, cy - R * 0.38, 0, cx - R * 0.34, cy - R * 0.38, R * 0.62);
-      glow.addColorStop(0, 'rgba(255,255,255,0.42)');
-      glow.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
-
-      ctx.restore();
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, R, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(23,23,26,0.3)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // rim light: the arc catching the lamp
-      ctx.beginPath();
-      ctx.arc(cx, cy, R - 1, Math.PI * 1.02, Math.PI * 1.42);
-      ctx.strokeStyle = 'rgba(255,255,255,0.75)';
-      ctx.lineWidth = 1.6;
-      ctx.stroke();
+      dots.forEach((path, i) => {
+        ctx.fillStyle = `rgba(23,23,26,${((i + 0.5) / BUCKETS).toFixed(3)})`;
+        ctx.fill(path);
+      });
 
       v.pins.forEach((pin, i) => {
         const p = rotate(toVec(pin.lon, pin.lat), v.lon, v.lat);
         if (p.z < 0) return;
         const q = project(p);
-        const dx = q.x - w / 2;
-        const dy = q.y - h / 2;
+        const dx = q.x - cx;
+        const dy = q.y - cy;
         const len = Math.hypot(dx, dy) || 1;
         const ux = dx / len;
         const uy = dy / len;
 
-        // surface mark
         ctx.fillStyle = 'rgba(138,51,36,0.95)';
         ctx.beginPath();
-        ctx.arc(q.x, q.y, 2.4, 0, Math.PI * 2);
+        ctx.arc(q.x, q.y, 2.4, 0, TAU);
         ctx.fill();
 
-        // stalk along the surface normal
         ctx.strokeStyle = 'rgba(138,51,36,0.9)';
         ctx.lineWidth = 1.1;
         ctx.beginPath();
@@ -272,9 +283,8 @@ export default function Plate({ size = 420 }: { size?: number }) {
         ctx.lineTo(q.x + ux * 13, q.y + uy * 13);
         ctx.stroke();
 
-        // head
         ctx.beginPath();
-        ctx.arc(q.x + ux * 14, q.y + uy * 14, 3.4, 0, Math.PI * 2);
+        ctx.arc(q.x + ux * 14, q.y + uy * 14, 3.4, 0, TAU);
         ctx.fillStyle = '#8a3324';
         ctx.fill();
 
@@ -315,29 +325,80 @@ export default function Plate({ size = 420 }: { size?: number }) {
           ctx.strokeStyle = 'rgba(138,51,36,0.9)';
           ctx.lineWidth = 1;
           const g = 7;
-          for (const [ax, ay, bx, by] of [
-            [hv.x - g - 4, hv.y, hv.x - g, hv.y],
-            [hv.x + g, hv.y, hv.x + g + 4, hv.y],
-            [hv.x, hv.y - g - 4, hv.x, hv.y - g],
-            [hv.x, hv.y + g, hv.x, hv.y + g + 4],
-          ]) {
-            ctx.beginPath();
-            ctx.moveTo(ax, ay);
-            ctx.lineTo(bx, by);
-            ctx.stroke();
-          }
+          ctx.beginPath();
+          ctx.moveTo(hv.x - g - 4, hv.y);
+          ctx.lineTo(hv.x - g, hv.y);
+          ctx.moveTo(hv.x + g, hv.y);
+          ctx.lineTo(hv.x + g + 4, hv.y);
+          ctx.moveTo(hv.x, hv.y - g - 4);
+          ctx.lineTo(hv.x, hv.y - g);
+          ctx.moveTo(hv.x, hv.y + g);
+          ctx.lineTo(hv.x, hv.y + g + 4);
+          ctx.stroke();
         } else {
           setCoord(null);
         }
       }
     };
 
-    raf = requestAnimationFrame(draw);
-    draw();
-    window.addEventListener('resize', resize);
+    const step = (dt: number) => {
+      const quiet = Date.now() - lastInput > 80000;
+      if (quiet !== idleNow) {
+        idleNow = quiet;
+        setIdle(quiet);
+      }
+      const frames = dt / 16.7;
+      if (!quiet) {
+        v.lon += v.vlon * frames + (v.spin && !v.drag && !reduced ? 0.045 * frames : 0);
+        v.lat += v.vlat * frames;
+      }
+      v.vlon *= Math.pow(0.94, frames);
+      v.vlat *= Math.pow(0.9, frames);
+      v.lat = Math.max(-78, Math.min(78, v.lat));
+    };
+
+    const loop = () => {
+      raf = requestAnimationFrame(loop);
+      frame++;
+      if (!visible) return;
+
+      const now = performance.now();
+      const dt = Math.min(64, now - lastRender);
+      const coasting = Math.abs(v.vlon) + Math.abs(v.vlat) > 0.002;
+      const moving = v.spin || v.drag || v.hover || pending || coasting;
+      if (!moving) return;
+      if (idleNow && !pending && !v.hover) return;
+
+      // unattended spin does not need 60 fps
+      const cheapOnly = !v.drag && !v.hover && !pending && !coasting;
+      if (cheapOnly && dt < 41) return;
+
+      lastRender = now;
+      pending = false;
+      step(dt);
+      render();
+    };
+
+    raf = requestAnimationFrame(loop);
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible = entries[0].isIntersecting;
+        if (visible) pending = true;
+      },
+      { threshold: 0.01 },
+    );
+    io.observe(canvas);
+
+    const onResize = () => {
+      resize();
+    };
+    window.addEventListener('resize', onResize);
+
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
+      io.disconnect();
+      window.removeEventListener('resize', onResize);
     };
   }, [size]);
 
@@ -372,12 +433,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
       return { lat, lon };
     };
 
-    const wake = () => {
-      lastInput.current = Date.now();
-    };
-
     const down = (e: PointerEvent) => {
-      wake();
       const { x, y } = local(e);
       v.drag = true;
       v.lastX = x;
@@ -387,7 +443,6 @@ export default function Plate({ size = 420 }: { size?: number }) {
     };
 
     const move = (e: PointerEvent) => {
-      wake();
       const { x, y } = local(e);
       v.hover = { x, y };
       if (!v.drag) return;
@@ -422,7 +477,6 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
     const wheel = (e: WheelEvent) => {
       e.preventDefault();
-      wake();
       v.zoom = Math.max(0.65, Math.min(2.1, v.zoom * (e.deltaY > 0 ? 0.94 : 1.06)));
       setZoomLabel(`${v.zoom.toFixed(1)}×`);
     };
@@ -430,11 +484,11 @@ export default function Plate({ size = 420 }: { size?: number }) {
     const dbl = () => reset();
 
     const key = (e: KeyboardEvent) => {
-      const step = 6;
-      if (e.key === 'ArrowLeft') v.lon -= step;
-      else if (e.key === 'ArrowRight') v.lon += step;
-      else if (e.key === 'ArrowUp') v.lat -= step;
-      else if (e.key === 'ArrowDown') v.lat += step;
+      const stepSize = 6;
+      if (e.key === 'ArrowLeft') v.lon -= stepSize;
+      else if (e.key === 'ArrowRight') v.lon += stepSize;
+      else if (e.key === 'ArrowUp') v.lat -= stepSize;
+      else if (e.key === 'ArrowDown') v.lat += stepSize;
       else if (e.key === '+' || e.key === '=') {
         v.zoom = Math.min(2.1, v.zoom * 1.08);
         setZoomLabel(`${v.zoom.toFixed(1)}×`);
@@ -453,7 +507,6 @@ export default function Plate({ size = 420 }: { size?: number }) {
       const pin = { ...CHALLENGER, label: 'CHALLENGER DEEP · 10,911 m' };
       v.pins = [...v.pins, pin].slice(-5);
       setPins(v.pins);
-      wake();
     };
 
     document.addEventListener('hadal:challenger', word);
@@ -484,7 +537,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
   return (
     <figure>
-      <div ref={shellRef} className="plate relative">
+      <div ref={shellRef} className="relative">
         <canvas
           ref={canvasRef}
           tabIndex={0}
@@ -493,12 +546,12 @@ export default function Plate({ size = 420 }: { size?: number }) {
           className="mx-auto block focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent"
         />
         {coord && (
-          <span className="mono-label tabular pointer-events-none absolute bottom-3 left-4 bg-[#f7f4ed] px-1 text-accent">
+          <span className="mono-label tabular pointer-events-none absolute bottom-0 left-0 bg-paper px-1 text-accent">
             {coord}
           </span>
         )}
         {pins.length > 0 && (
-          <span className="mono-label pointer-events-none absolute bottom-3 right-4 bg-[#f7f4ed] px-1">
+          <span className="mono-label pointer-events-none absolute bottom-0 right-0 bg-paper px-1">
             {pins.length} pin{pins.length > 1 ? 's' : ''} · {zoomLabel}
           </span>
         )}

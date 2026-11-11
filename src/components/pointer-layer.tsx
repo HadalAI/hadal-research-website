@@ -89,10 +89,16 @@ export default function PointerLayer() {
     raf = requestAnimationFrame(draw);
     window.addEventListener('resize', resize);
 
+    let hx = -999;
+    let hy = -999;
     const onMove = (e: PointerEvent) => {
       x = e.clientX;
       y = e.clientY;
-      live = isPaper(document.elementFromPoint(e.clientX, e.clientY));
+      // hit-testing forces a layout read; skip it when the pointer barely moved
+      if (Math.abs(x - hx) + Math.abs(y - hy) < 4) return;
+      hx = x;
+      hy = y;
+      live = isPaper(document.elementFromPoint(x, y));
     };
     const onLeave = () => {
       live = false;
