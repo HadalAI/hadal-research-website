@@ -23,8 +23,8 @@ type Pin = { lat: number; lon: number; label?: string };
 const D2R = Math.PI / 180;
 const TAU = Math.PI * 2;
 const TILT = -16;
-const MASK_W = 4096;
-const MASK_H = 2048;
+const MASK_W = 2048;
+const MASK_H = 1024;
 const LIGHT = { x: -0.45, y: 0.52, z: 0.72 };
 
 function fmt(v: number, pos: string, neg: string) {
@@ -46,6 +46,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
     lastX: 0,
     lastY: 0,
     hover: null as { x: number; y: number } | null,
+    hoverDirty: false,
     pins: [] as Pin[],
   });
 
@@ -97,7 +98,6 @@ export default function Plate({ size = 420 }: { size?: number }) {
     let lastInput = Date.now();
     let idleNow = false;
     let raf = 0;
-    let quality = 1; // drops to 0.8 / 0.65 if frames get expensive
 
     /* ---------- land mask ---------- */
     let MASK: Uint8Array | null = null;
@@ -126,6 +126,13 @@ export default function Plate({ size = 420 }: { size?: number }) {
         MASK = new Uint8Array(MASK_W * MASK_H);
         for (let i = 0, j = 0; i < d.length; i += 4, j++) MASK[j] = d[i];
       }
+    }
+
+    // asin table for the latitude lookup
+    const VTAB = new Float32Array(4098);
+    for (let k = 0; k <= 4097; k++) {
+      const g = Math.min(1, -1 + (k * 2) / 4096);
+      VTAB[k] = (0.5 - Math.asin(g) / Math.PI) * MASK_H;
     }
 
     /* ---------- paper ---------- */
@@ -193,47 +200,13 @@ export default function Plate({ size = 420 }: { size?: number }) {
     const sctx = sphere.getContext('2d');
     let img: ImageData | null = null;
     let bufW = 0;
-    let nxT: Float32Array = new Float32Array(0);
-    let nyT: Float32Array = new Float32Array(0);
-    let nzT: Float32Array = new Float32Array(0);
-    let shadeT: Float32Array = new Float32Array(0);
-    let inside: Uint8Array = new Uint8Array(0);
 
-    const buildBuffers = (S: number) => {
+    const setBuffer = (S: number) => {
+      if (S === bufW) return;
       bufW = S;
       sphere.width = S;
       sphere.height = S;
       img = sctx ? sctx.createImageData(S, S) : null;
-      const n = S * S;
-      nxT = new Float32Array(n);
-      nyT = new Float32Array(n);
-      nzT = new Float32Array(n);
-      shadeT = new Float32Array(n);
-      inside = new Uint8Array(n);
-      const c = -TILT * D2R;
-      const ct = Math.cos(c);
-      const st = Math.sin(c);
-      for (let y = 0; y < S; y++) {
-        for (let x = 0; x < S; x++) {
-          const i = y * S + x;
-          const u = ((x + 0.5) / S) * 2 - 1;
-          const vv = ((y + 0.5) / S) * 2 - 1;
-          const r2 = u * u + vv * vv;
-          if (r2 > 1) continue;
-          inside[i] = 1;
-          // undo the page tilt, then convert to a right-handed view normal
-          const ux = u * ct - vv * st;
-          const uy = u * st + vv * ct;
-          const X = ux;
-          const Y = -uy;
-          const Z = Math.sqrt(Math.max(0, 1 - r2));
-          nxT[i] = X;
-          nyT[i] = Y;
-          nzT[i] = Z;
-          const lam = Math.max(0, X * LIGHT.x + Y * LIGHT.y + Z * LIGHT.z);
-          shadeT[i] = 0.32 + 0.68 * Math.pow(lam, 0.9);
-        }
-      }
     };
 
     /* ---------- wash ---------- */
@@ -286,7 +259,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
       ctx.imageSmoothingQuality = 'high';
       paperKey = '';
       washKey = '';
-      buildBuffers(Math.max(160, Math.round(w * 0.42 * 2 * 1.8 * quality)));
+      setBuffer(Math.max(160, Math.round(2 * w * 0.42 * dpr)));
       pending = true;
     };
     resize();
@@ -326,6 +299,9 @@ export default function Plate({ size = 420 }: { size?: number }) {
       };
     };
 
+    let qualityForFrame = 1;
+    let wasActive = false;
+
     const render = () => {
       const cx = w / 2;
       const cy = h / 2;
@@ -347,48 +323,84 @@ export default function Plate({ size = 420 }: { size?: number }) {
       const cp = Math.cos(v.lat * D2R);
       const sp = Math.sin(v.lat * D2R);
 
+      const S = Math.max(160, Math.round(2 * R * dpr * qualityForFrame));
+      setBuffer(S);
+
       if (img && MASK) {
         const px = img.data;
-        const S = bufW;
-        for (let i = 0, n = S * S; i < n; i++) {
-          if (!inside[i]) continue;
-          px[i * 4 + 3] = 0;
-          const X = nxT[i];
-          const Y = nyT[i];
-          const Z = nzT[i];
+        const ct = Math.cos(-TILT * D2R);
+        const st = Math.sin(-TILT * D2R);
+        const half = S / 2;
+        const asc = 2 / S;
 
-          // inverse pitch
-          const y1 = Y * cp + Z * sp;
-          const z1 = -Y * sp + Z * cp;
-          // inverse meridian rotation
-          const gx = z1 * clon - X * slon;
-          const gz = z1 * slon + X * clon;
-          const gy = y1;
+        for (let y = 0; y < S; y++) {
+          const v0 = (y + 0.5 - half) * asc;
+          const base = y * S;
+          for (let x = 0; x < S; x++) {
+            const u0 = (x + 0.5 - half) * asc;
+            const r2 = u0 * u0 + v0 * v0;
+            if (r2 > 1) continue;
+            const i = base + x;
+            const o = i * 4;
+            px[o + 3] = 0;
 
-          const lat = Math.asin(gy > 1 ? 1 : gy < -1 ? -1 : gy);
-          const lon = Math.atan2(gz, gx);
+            const ux = u0 * ct - v0 * st;
+            const uy = u0 * st + v0 * ct;
+            const X = ux;
+            const Y = -uy;
+            const Z = Math.sqrt(1 - r2);
 
-          const u = (lon * 0.159154943 + 0.5) * MASK_W - 0.5;
-          const vv = (0.5 - lat * 0.318309886) * MASK_H - 0.5;
-          const x0 = u | 0;
-          const y0 = vv | 0;
-          const fx = u - x0;
-          const fy = vv - y0;
-          const xa = x0 < 0 ? 0 : x0 >= MASK_W - 1 ? MASK_W - 2 : x0;
-          const ya = y0 < 0 ? 0 : y0 >= MASK_H - 1 ? MASK_H - 2 : y0;
-          const i00 = ya * MASK_W + xa;
-          const a0 = MASK[i00] + (MASK[i00 + 1] - MASK[i00]) * fx;
-          const b0 = MASK[i00 + MASK_W] + (MASK[i00 + MASK_W + 1] - MASK[i00 + MASK_W]) * fx;
-          const land = a0 + (b0 - a0) * fy;
-          if (!land) continue;
+            // inverse pitch, then inverse meridian rotation
+            const y1 = Y * cp + Z * sp;
+            const z1 = -Y * sp + Z * cp;
+            const gx = z1 * clon - X * slon;
+            const gz = z1 * slon + X * clon;
+            const gy = y1;
 
-          // alpha must be written as an 8-bit value, not a 0..1 float
-          const a = (land / 255) * shadeT[i] * 0.95 * 255;
-          const o = i * 4;
-          px[o] = 24;
-          px[o + 1] = 24;
-          px[o + 2] = 28;
-          px[o + 3] = a > 255 ? 255 : a;
+            // asin through a table, atan2 through a polynomial: both are only
+            // feeding a texture lookup, so 1e-4 rad of error is invisible
+            const ak = (gy + 1) * 2048;
+            const ai = ak | 0;
+            const af = ak - ai;
+            const vcoord = VTAB[ai] + (VTAB[ai + 1] - VTAB[ai]) * af;
+
+            const ax = gx < 0 ? -gx : gx;
+            const az = gz < 0 ? -gz : gz;
+            let at;
+            if (ax > az) {
+              const r = az / (ax || 1e-9);
+              const rq = r * r;
+              at = (((-0.0464964749 * rq + 0.15931422) * rq - 0.327622764) * rq * r) + r;
+            } else {
+              const r = ax / (az || 1e-9);
+              const rq = r * r;
+              at = 1.57079637 - (((-0.0464964749 * rq + 0.15931422) * rq - 0.327622764) * rq * r) - r;
+            }
+            if (gx < 0) at = 3.14159274 - at;
+            if (gz < 0) at = -at;
+            const lon = at;
+
+            const u = (lon * 0.159154943 + 0.5) * MASK_W - 0.5;
+            const vv = vcoord - 0.5;
+            const xi = u | 0;
+            const yi = vv | 0;
+            const xa = xi < 1 ? 1 : xi >= MASK_W - 2 ? MASK_W - 3 : xi;
+            const ya = yi < 1 ? 1 : yi >= MASK_H - 2 ? MASK_H - 3 : yi;
+            const r0 = ya * MASK_W + xa;
+            const land =
+              (MASK[r0 - MASK_W - 1] + MASK[r0 - MASK_W] + MASK[r0 - MASK_W + 1] +
+                MASK[r0 - 1] + MASK[r0] + MASK[r0 + 1] +
+                MASK[r0 + MASK_W - 1] + MASK[r0 + MASK_W] + MASK[r0 + MASK_W + 1]) * (1 / 9);
+            if (land < 3) continue;
+
+            const lam = X * LIGHT.x + Y * LIGHT.y + Z * LIGHT.z;
+            const shade = lam > 0 ? 0.3 + 0.7 * Math.sqrt(lam) : 0.3;
+            const a = (land * 0.00372549) * shade * 242;
+            px[o] = 24;
+            px[o + 1] = 24;
+            px[o + 2] = 28;
+            px[o + 3] = a > 255 ? 255 : a;
+          }
         }
       }
 
@@ -524,12 +536,14 @@ export default function Plate({ size = 420 }: { size?: number }) {
         v.lon += v.vlon * frames + (v.spin && !v.drag && !reduced ? 0.03 * frames : 0);
         v.lat += v.vlat * frames;
       }
-      v.vlon *= Math.pow(0.94, frames);
+      v.vlon *= Math.pow(0.9, frames);
       v.vlat *= Math.pow(0.9, frames);
       v.lat = Math.max(-80, Math.min(80, v.lat));
       if (v.lon > 180) v.lon -= 360;
       if (v.lon < -180) v.lon += 360;
     };
+
+    let settleTimer = 0;
 
     const loop = () => {
       raf = requestAnimationFrame(loop);
@@ -537,26 +551,30 @@ export default function Plate({ size = 420 }: { size?: number }) {
 
       const now = performance.now();
       const dt = Math.min(64, now - lastRender);
-      const coasting = Math.abs(v.vlon) + Math.abs(v.vlat) > 0.002;
-      const moving = v.spin || v.drag || v.hover || pending || coasting;
-      if (!moving) return;
-      if (idleNow && !pending && !v.hover) return;
+      const coasting = Math.abs(v.vlon) + Math.abs(v.vlat) > 0.01;
+      const moving = v.spin || v.drag || v.hoverDirty || pending || coasting;
+      if (!moving) {
+        // nothing is happening: make sure the last frame is the sharp one
+        if (qualityForFrame !== 1) {
+          qualityForFrame = 1;
+          render();
+          lastRender = now;
+        }
+        return;
+      }
+      if (idleNow && !pending && !v.hoverDirty) return;
 
-      const cheapOnly = !v.drag && !v.hover && !pending && !coasting;
-      if (dt < (cheapOnly ? 95 : 33)) return;
+      // full resolution whenever the globe is at rest; while it is being turned
+      // or spun, render coarser and let the browser scale it
+      const active = v.drag || coasting || v.spin;
+      if (active && dt < 24) return;
+      qualityForFrame = active ? 0.55 : 1;
 
-      const t0 = performance.now();
       lastRender = now;
       pending = false;
+      v.hoverDirty = false;
       step(dt);
       render();
-      const cost = performance.now() - t0;
-
-      // if frames get expensive, render the sphere smaller and let it scale
-      if (cost > 11 && quality > 0.7) {
-        quality = 0.7;
-        buildBuffers(Math.max(160, Math.round(w * 0.42 * 2 * 1.8 * quality)));
-      }
     };
 
     raf = requestAnimationFrame(loop);
@@ -602,6 +620,7 @@ export default function Plate({ size = 420 }: { size?: number }) {
     const move = (e: PointerEvent) => {
       const { x, y } = local(e);
       v.hover = { x, y };
+      v.hoverDirty = true;
       if (!v.drag) return;
       const dx = x - v.lastX;
       const dy = y - v.lastY;

@@ -20,7 +20,7 @@ export default function PointerLayer() {
     if (window.matchMedia('(pointer: coarse)').matches) return;
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1);
     const marks: Mark[] = [];
     let w = 0;
     let h = 0;
