@@ -76,6 +76,163 @@ function Table({
 }
 
 export const POSTS: Post[] = [
+{
+    slug: 'framing-newlines',
+    title: 'Framing newlines: how tool-call parsers rewrite the files agents write',
+    kind: 'PAPER',
+    date: '2026-11-15',
+    displayDate: '15 November 2026',
+    authors: 'Muhammad Ammar Imran',
+    readingTime: '7 min',
+    summary:
+      'Every open-weights agent model writes file contents between one framing newline on each side. We rendered 222 real files as tool calls and parsed them back with five parsers: the format preserves all 222, a .strip() parser preserves 14. Serving stacks get this right; agent clients re-deriving the parse get it wrong, and a benchmark that grades file contents scores a perfect model at 6.3%.',
+    tags: ['tool use', 'evaluation', 'format design', 'agents'],
+    links: [
+      {
+        label: 'Paper (PDF, 4 pages)',
+        href: '/papers/framing-newlines.pdf',
+        external: true,
+      },
+      {
+        label: 'Code and raw results',
+        href: 'https://github.com/HadalAI/hadal1/tree/main/experiments',
+        external: true,
+      },
+    ],
+    body: (
+      <>
+        <p className={LEAD}>
+          A model that can drive a file editor still cannot reliably write a file, because the format it
+          writes through — and the parser on the other side — decide whether the last byte survives.
+          This is a measurement of that gap, on real files, with no model in the loop.
+        </p>
+        <p className={P}>
+          Qwen, LFM3, Granite 4.2 and MiniMax all emit tool calls as XML in which each argument value
+          sits between a framing newline on either side of its tag. It is a clean design: one newline
+          per side, no escaping, values may span lines. It is also, as it turns out, the exact place
+          where agents silently lose data.
+        </p>
+
+        <h2 className={H2}>The contrast</h2>
+        <pre className={CODE}>
+{`<tool_call>
+<function=write_file>
+<parameter=content>
+VALUE
+</parameter>
+</function>
+</tool_call>
+
+one newline each side is framing — nothing else is`}
+        </pre>
+        <p className={P}>
+          Remove exactly those two newlines and the format is invertible: we rendered 222 real files
+          (Python sources, markdown, system configs, shell scripts) as <code>write_file</code> calls and
+          every one came back byte-identical. The information is all there.
+        </p>
+
+        <h2 className={H2}>What was measured</h2>
+        <ul className={UL}>
+          <li>
+            <span className="text-[#f5f5f2]">Corpus.</span> 222 files, 1.69 MB, from a working
+            developer machine. 93.7% of them end with a newline.
+          </li>
+          <li>
+            <span className="text-[#f5f5f2]">Parsers.</span> Five implementations: strict frame, the
+            frame-plus-spaces fix a production agent SDK shipped this month, line-split,{' '}
+            <code>.strip()</code>, and <code>.rstrip('\n')</code>.
+          </li>
+          <li>
+            <span className="text-[#f5f5f2]">Grading.</span> Exact string equality. No model, no GPU,
+            no network — the whole experiment reruns in under a minute.
+          </li>
+        </ul>
+
+        <h2 className={H2}>Results</h2>
+        <Table
+          head={['parser', 'preserved', 'corrupted', 'failure mode']}
+          rows={[
+            ['strict frame', '100.0%', '0', '—'],
+            ['frame + spaces/tabs (shipped fix)', '97.3%', '6', 'single-line values still stripped'],
+            ['line-split + right-trim', '97.3%', '6', 'trailing blank lines collapse'],
+            ['.strip()', '6.3%', '208', 'final newline removed from every multiline file'],
+            [".rstrip('\\n')", '0.0%', '222', 'removes frame and value newlines; adds a leading one'],
+          ]}
+          caption="Table 1. Payload fidelity of five parser implementations over 222 real files."
+        />
+        <p className={P}>
+          On a task shaped like “write this file”, graded by exact content, the same perfect agent
+          scores <strong>100%</strong> under a strict parser and <strong>6.3%</strong> under{' '}
+          <code>.strip()</code>. A 94-point swing with no model involved — the benchmark would be
+          measuring the parser and reporting it as model capability.
+        </p>
+
+        <h2 className={H2}>The second failure class</h2>
+        <p className={P}>
+          The format defines no escaping for its own terminator. A payload containing{' '}
+          <code>&lt;/parameter&gt;</code> truncates at that point, and the remainder is parsed as
+          additional parameters — so a file being written can change the call's <code>path</code>.
+          Three files in our working tree contain the terminator; rendered through the format they
+          returned at 3.0%, 11.3% and 5.2% of their original length.
+        </p>
+
+        <h2 className={H2}>This is not hypothetical</h2>
+        <p className={P}>
+          Two production systems reported exactly this, one week apart.{' '}
+          <strong>OpenHands software-agent-sdk, PR #6451:</strong> “the parser then called{' '}
+          <code>.strip()</code> on every <code>&lt;parameter=…&gt;</code> value … so a file_editor
+          create wrote file_text without the first line's indentation or the final newline.” Their fix
+          is the 97.3% row above. <strong>MTPLX issue #691:</strong> “a write whose content ends in{' '}
+          <code>\n</code> arrives at the client without it”, and the next turn re-tokenises differently
+          and drops out of the session bank — a prefix-cache miss caused by a parser.
+        </p>
+        <p className={P}>
+          Neither quantifies reach, and we are not aware of a prior measurement of it. Both treat it as
+          a bug in one adapter rather than a property of a format family used by most open agent models.
+        </p>
+
+        <h2 className={H2}>Where in the stack it happens</h2>
+        <p className={P}>
+          The reference server gets it right, explicitly. vLLM parses this same Qwen3 format with a helper
+          called <code>_trim_wrapping_newlines</code>, whose docstring reads “strip one leading and one
+          trailing newline (the Qwen3 template markup)”. That is the 100% row above. SGLang's Granite
+          detector reaches the same result by scanning tags rather than trimming values.
+        </p>
+        <p className={P}>
+          The loss therefore has an address: <strong>clients that re-derive the parse from template
+          text</strong>. A server ships with the model's chat template and knows which newline is markup.
+          An agent framework receives arguments as text and has to guess — and when it guesses with
+          <code>.strip()</code>, it eats the payload. That asymmetry is also why the bug survives review:
+          the server-side tests pass, because the server is correct.
+        </p>
+
+        <h2 className={H2}>Why benchmarks miss it</h2>
+        <p className={P}>
+          Tool-use benchmarks grade function names and short arguments — identifiers, numbers, enums —
+          which whitespace trimming cannot hurt. The failure appears only when the argument is a
+          document, which is what coding agents do all day. It also hides in benchmark design: our own
+          tool-use suite generated write payloads without trailing newlines, deliberately, because
+          teaching a trailing newline the format “could not express” seemed unfair. That instinct —
+          avoid the case that breaks the harness — is how a systematic problem stays invisible.
+        </p>
+
+        <h2 className={H2}>Recommendation</h2>
+        <ul className={UL}>
+          <li>Parse by frame, not by whitespace: remove exactly one leading and one trailing newline.</li>
+          <li>Escape or reject the terminator on emit; the format currently permits it and cannot represent it.</li>
+          <li>Prefer JSON arguments where the transport allows; JSON's escaping is why this class does not exist there.</li>
+          <li>Grade payload fidelity explicitly. A tool-use benchmark that never asks for a trailing newline cannot see any of this.</li>
+        </ul>
+        <p className={NOTE}>
+          Limitations: 222 files from one machine, weighted toward Python, markdown and configs. We
+          measure the format and the parsers, not the models; whether a given model emits the framing
+          correctly is a separate question that needs GPU inference. Parser variants are
+          reimplementations of documented behaviour, released with the results so the mapping can be
+          checked line by line.
+        </p>
+      </>
+    ),
+  },
   {
     slug: 'changing-one-word',
     title: 'Changing one word: how anchor direction breaks list indexing',
