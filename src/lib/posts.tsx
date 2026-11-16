@@ -73,14 +73,14 @@ export const POSTS: Post[] = [
 
 {
     slug: 'edit-protocols',
-    title: 'Fail-open edits: how agent file-editing formats corrupt code without telling anyone',
+    title: 'The blind window: how stale is the file an agent edits',
     kind: 'PAPER',
     date: '2026-11-16',
     displayDate: '16 November 2026',
     authors: 'Kyssta',
     readingTime: '8 min',
     summary:
-      'Agent harnesses send file edits as whole files, SEARCH/REPLACE blocks, diffs, apply_patch envelopes or line ranges. When the file has drifted — a formatter, a checkout, an editor — exact matchers refuse and fuzzy or line-number formats apply the edit to the wrong place. On 696 real files, two formats never failed safe and up to 6.2% of their drifted Python edits changed the program. The distinction was established by Althoubi (2026) and Wan et al. (2026); this is a replication with a wider drift matrix and parser-level grading.',
+      'Half of the 8,399 file writes in our agent logs went to files that existed but had never been opened in that session; where a read did come first, the median gap was 3.5 minutes and 14 tool calls, with a tail measured in hours. That is the window in which a formatter or a checkout can move the file under an edit. We pair it with a re-measurement of edit formats under drift, and with base rates: 3.42% of file changes in six mature repositories are whitespace-class.',
     tags: ['tool use', 'evaluation', 'editing', 'agents'],
     links: [
       { label: 'Paper (PDF)', href: '/papers/edit-protocols.pdf' },
@@ -130,6 +130,25 @@ export const POSTS: Post[] = [
           ]}
           caption="Table 1. Verdicts on 2,159 drifted edits. The program-change column is defined only for Python, so it is diluted by the non-Python share of the corpus; on Python edits alone, fuzzy matching changes the program in 4.5% of drifted cases and line ranges in 6.2%."
         />
+
+        <h2 className={H2}>How wide is the window?</h2>
+        <p className={P}>
+          A format only matters if the agent is editing against a copy that has had time to change. We
+          measured that from our own session stores: every file-writing tool call was matched to the most
+          recent read of the same path in the same conversation.
+        </p>
+        <p className={P}>
+          Of <span className="text-ink">8,399 writes</span>, <span className="text-ink">50.6%</span> went
+          to files that exist on disk but had never been read in that session. Where a read did come first
+          (2,936 cases), the median separation was <span className="text-ink">208 seconds and 14 tool
+          calls</span>; the 75th percentile was 59 minutes, the 90th 3.4 hours. A third of matched edits
+          came more than fifteen minutes after the last read, and a quarter more than an hour after.
+        </p>
+        <p className={NOTE}>
+          Half of all edits are made blind by this count, and the window is minutes-to-hours, not seconds.
+          The logs are this lab's own traffic — five session stores, one harness — so treat the shape as a
+          pilot, not a population estimate.
+        </p>
 
         <h2 className={H2}>Is the drift real?</h2>
         <p className={P}>
