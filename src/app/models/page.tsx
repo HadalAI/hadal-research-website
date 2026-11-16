@@ -67,15 +67,11 @@ export default function ModelsPage() {
             keep the retrieval behaviour of attention while paying recurrent cost for the rest.
           </p>
           <p>
-            HADAL-1 is the vehicle for that question, not a product. Its evaluation set comes from{' '}
-            <Link href="/research#hybrid-architectures" className="link">
-              program 01
-            </Link>{' '}
-            and the long-context probes in{' '}
+            HADAL-1 is the vehicle for that question, not a product. Its evaluation set comes from the{' '}
             <Link href="/research#long-context" className="link">
-              program 02
+              long-context programme
             </Link>
-            . {PROGRAMS.length} programs, one model line.
+            . {PROGRAMS.length} programme{PROGRAMS.length === 1 ? '' : 's'}, one model line.
           </p>
           <p className="text-[15px] text-muted/80">
             When a model ships it will be listed here with its card, its evaluation record and the

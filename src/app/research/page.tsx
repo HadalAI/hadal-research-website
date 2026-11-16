@@ -16,22 +16,18 @@ export default function ResearchPage() {
             Research
           </h1>
           <p className="mt-6 max-w-[52ch] font-serif text-[18px] leading-[1.55] text-muted">
-            Four programs, one question each. Hybrid model design is the through-line: where
-            attention is still worth its cost, what a model does with position when it has less of
-            it, and how to tell a real effect from a lucky run.
+            One programme, and only what has been measured: what a model does with position when
+            there is more of it than it can index. Each entry carries the records and the analysis
+            that produced its numbers.
           </p>
         </div>
         <dl className="border-t border-rule pt-4 md:border-l md:border-t-0 md:pl-10 md:pt-0">
           <div className="flex justify-between gap-4">
             <dt className="mono-label">Programs</dt>
-            <dd className="tabular font-mono text-[11px]">04</dd>
-          </div>
-          <div className="mt-2 flex justify-between gap-4">
-            <dt className="mono-label">Published</dt>
             <dd className="tabular font-mono text-[11px]">01</dd>
           </div>
           <div className="mt-2 flex justify-between gap-4">
-            <dt className="mono-label">Planned</dt>
+            <dt className="mono-label">Published</dt>
             <dd className="tabular font-mono text-[11px]">01</dd>
           </div>
         </dl>

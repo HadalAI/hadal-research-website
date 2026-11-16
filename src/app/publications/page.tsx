@@ -4,14 +4,6 @@ import CopyCitation from '@/components/copy-citation';
 
 export const metadata = { title: 'Publications' };
 
-const BIBTEX = `@misc{imran2026changingoneword,
-  title  = {Changing One Word: a paired test of anchor direction in list indexing},
-  author = {Imran, Muhammad Ammar},
-  year   = {2026},
-  note   = {Preprint, v6. Not peer reviewed.},
-  url    = {https://github.com/okyssta/llm-midpoint-anchor-study}
-}`;
-
 export default function PublicationsPage() {
   return (
     <main className="mx-auto max-w-page px-6 md:px-10">
@@ -29,15 +21,11 @@ export default function PublicationsPage() {
         <dl className="border-t border-rule pt-4 md:border-l md:border-t-0 md:pl-10 md:pt-0">
           <div className="flex justify-between gap-4">
             <dt className="mono-label">Papers</dt>
-            <dd className="tabular font-mono text-[11px]">01</dd>
+            <dd className="tabular font-mono text-[11px]">02</dd>
           </div>
           <div className="mt-2 flex justify-between gap-4">
             <dt className="mono-label">Peer reviewed</dt>
             <dd className="tabular font-mono text-[11px]">00</dd>
-          </div>
-          <div className="mt-2 flex justify-between gap-4">
-            <dt className="mono-label">In preparation</dt>
-            <dd className="tabular font-mono text-[11px]">01</dd>
           </div>
         </dl>
       </header>
@@ -64,26 +52,18 @@ export default function PublicationsPage() {
               <p className="mt-6 font-serif text-[17px] leading-[1.62] text-ink/85">{pub.abstract}</p>
 
               <p className="mt-7 flex flex-wrap gap-x-8 gap-y-3 font-serif text-[16px]">
-                <Link href={`/blog/${pub.slug}`} className="link">
-                  Read the paper →
-                </Link>
-                <a
-                  href="https://github.com/okyssta/llm-midpoint-anchor-study/blob/main/paper/anchor_word_v6.pdf"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="link"
-                >
-                  PDF ↗
-                </a>
-                <a
-                  href="https://github.com/okyssta/llm-midpoint-anchor-study"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="link"
-                >
-                  Code & records ↗
-                </a>
-                <CopyCitation bibtex={BIBTEX} />
+                {pub.links.map((l) =>
+                  l.external ? (
+                    <a key={l.label} href={l.href} target="_blank" rel="noreferrer" className="link">
+                      {l.label} ↗
+                    </a>
+                  ) : (
+                    <Link key={l.label} href={l.href} className="link">
+                      {l.label} →
+                    </Link>
+                  ),
+                )}
+                <CopyCitation bibtex={pub.bibtex} />
               </p>
 
               <dl className="mt-9 grid grid-cols-2 gap-x-8 gap-y-4 border-t border-rule pt-5 md:grid-cols-4">
@@ -104,9 +84,6 @@ export default function PublicationsPage() {
         </article>
       ))}
 
-      <p className="py-10 font-serif text-[15px] text-muted">
-        In preparation — a hybrid-architecture ablation study (program 01). Not yet submitted.
-      </p>
     </main>
   );
 }

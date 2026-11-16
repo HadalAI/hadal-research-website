@@ -7,14 +7,14 @@ const CONTENTS = [
   {
     href: '/research',
     title: 'Research',
-    note: 'Four programs. One question each: where attention still earns its cost.',
-    meta: '4 programs',
+    note: 'One programme, published results only: what long context actually gets wrong.',
+    meta: '1 programme',
   },
   {
     href: '/publications',
     title: 'Publications',
     note: 'Preprints with their records, code and correction logs attached.',
-    meta: '1 paper',
+    meta: '2 papers',
   },
   {
     href: '/blog',
