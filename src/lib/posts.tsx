@@ -85,7 +85,7 @@ export const POSTS: Post[] = [
     links: [
       {
         label: 'Paper (PDF, 4 pages)',
-        href: '/papers/framing-newlines.pdf',
+        href: '/papers/framing-newlines.pdf?v=2',
         external: true,
       },
       {

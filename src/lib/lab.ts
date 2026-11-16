@@ -115,7 +115,7 @@ export const PUBLICATIONS: Publication[] = [
       '@misc{kyssta2026framingnewlines, title = {Framing Newlines: how tool-call parsers rewrite the files agents write}, author = {Kyssta}, year = {2026}, note = {Preprint. Not peer reviewed.}, url = {https://hadal.run/blog/framing-newlines}}',
     links: [
       { label: 'Read on the blog', href: '/blog/framing-newlines' },
-      { label: 'Paper (PDF)', href: '/papers/framing-newlines.pdf' },
+      { label: 'Paper (PDF)', href: '/papers/framing-newlines.pdf?v=2' },
       {
         label: 'Code & records',
         href: 'https://github.com/HadalAI/hadal1/tree/main/experiments',
