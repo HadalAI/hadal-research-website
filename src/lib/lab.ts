@@ -24,7 +24,7 @@ export const PROGRAMS: Program[] = [
     status: 'PUBLISHED',
     lead: 'When a model mis-indexes a list, what exactly did it get wrong?',
     summary:
-      'Long-context failures are usually reported as one aggregate score. We isolate a single variable at a time on paired items, holding the item and the ordinal fixed, so a difference between two prompts can only come from the thing we changed. Two results so far: a paired test of anchor direction at the midpoint of a list, and a measurement of what tool-call parsers do to the files an agent writes.',
+      'Long-context failures are usually reported as one aggregate score. We isolate a single variable at a time on paired items, holding the item and the ordinal fixed, so a difference between two prompts can only come from the thing we changed. The result so far is a paired test of anchor direction at the midpoint of a list, where the two questions differ by one word.',
     approach: [
       'Design contrasts where one word — or one template — is the only difference between two otherwise identical prompts.',
       'Fix the practical margin before the run, then report sign and size as separate claims.',
