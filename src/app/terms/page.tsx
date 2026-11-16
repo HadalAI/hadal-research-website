@@ -1,3 +1,6 @@
+import { Rule as SketchRule } from '@/components/sketch';
+import { Doodle } from '@/components/doodles';
+
 export const metadata = { title: 'Terms' };
 
 const SECTIONS: [string, string][] = [
@@ -29,16 +32,22 @@ const SECTIONS: [string, string][] = [
 
 export default function TermsPage() {
   return (
-    <main className="mx-auto max-w-measure px-6 py-14 md:px-10">
-      <p className="mono-label">Legal</p>
-      <h1 className="mt-4 font-serif text-[40px] leading-tight tracking-[-0.02em]">Terms of Use</h1>
-      <p className="mt-2 font-serif text-[15px] text-muted">Last updated 9 November 2026</p>
+    <main className="mx-auto max-w-measure px-5 py-10 md:px-10 md:py-14">
+      <p className="label flex items-center gap-2 text-pencil">
+        <Doodle name="bookmark" className="h-4 w-4 text-marker" strokeWidth={3} />
+        legal
+      </p>
+      <h1 className="mt-3 font-marker text-[clamp(32px,5vw,44px)] leading-[0.98]">Terms of Use</h1>
+      <p className="mt-2 text-[17px] text-pencil">Last updated 9 November 2026</p>
 
-      <div className="mt-10 border-t border-ink">
+      <SketchRule className="mt-6 text-ink" />
+
+      <div>
         {SECTIONS.map(([title, body]) => (
-          <section key={title} className="border-b border-rule py-6">
-            <h2 className="font-serif text-[20px]">{title}</h2>
-            <p className="mt-2 font-serif text-[16.5px] leading-[1.65] text-muted">{body}</p>
+          <section key={title} className="py-5">
+            <h2 className="font-marker text-[22px] leading-tight">{title}</h2>
+            <p className="mt-1.5 text-[18px] leading-[1.55] text-pencil">{body}</p>
+            <SketchRule className="mt-5 text-ink/25" />
           </section>
         ))}
       </div>

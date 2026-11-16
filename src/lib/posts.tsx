@@ -16,14 +16,15 @@ export type Post = {
   links: { label: string; href: string; external?: boolean }[];
 };
 
-const P = 'mt-5 font-serif text-[17px] leading-[1.68] text-ink/85';
-const LEAD = 'font-serif text-[20px] leading-[1.55] text-ink';
-const H2 = 'mt-12 border-t border-rule pt-5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted';
-const H3 = 'mt-8 font-serif text-[21px] italic';
-const UL = 'mt-5 list-disc space-y-2.5 pl-6 font-serif text-[17px] leading-[1.65] text-ink/85';
+const P = 'mt-5 text-[19.5px] leading-[1.55] text-ink/85';
+const LEAD = 'text-[21px] leading-[1.45] text-ink';
+const H2 =
+  'mt-11 font-marker text-[23px] leading-tight text-ink before:mr-2 before:text-marker before:content-["✎"]';
+const H3 = 'mt-7 font-marker text-[19px] leading-snug';
+const UL = 'doodle-list mt-4 space-y-2.5 text-[19px] leading-[1.55] text-ink/85';
 const CODE =
-  'mt-6 overflow-x-auto border-l-2 border-accent/50 bg-paper-2 px-5 py-4 font-mono text-[12px] leading-[1.8] text-ink';
-const NOTE = 'mt-8 border-l-2 border-accent pl-5 font-serif text-[15px] italic leading-relaxed text-muted';
+  'mt-6 overflow-x-auto border-l-[3px] border-marker bg-[#f6efdb] px-5 py-4 font-mono text-[14px] leading-[1.75] text-ink';
+const NOTE = 'mt-8 border-l-[3px] border-marker pl-5 text-[18.5px] italic leading-snug text-pencil';
 
 function Table({
   head,
@@ -36,12 +37,12 @@ function Table({
 }) {
   return (
     <figure className={`mt-8 ${head.length > 3 ? 'lg:-mx-16 xl:-mx-24' : ''}`}>
-      <div className="overflow-x-auto border-t border-ink">
+      <div className="overflow-x-auto border-t-[2.5px] border-ink">
         <table
           className={`paper-table text-left ${head.length > 3 ? 'min-w-[660px]' : 'min-w-[300px]'}`}
         >
           <thead>
-            <tr className="border-b hairline">
+            <tr>
               {head.map((h) => (
                 <th
                   key={h}
@@ -65,7 +66,7 @@ function Table({
           </tbody>
         </table>
       </div>
-      <figcaption className="mt-3 font-serif text-[13.5px] leading-relaxed text-muted">{caption}</figcaption>
+      <figcaption className="mt-2 text-[16px] leading-snug text-pencil">{caption}</figcaption>
     </figure>
   );
 }

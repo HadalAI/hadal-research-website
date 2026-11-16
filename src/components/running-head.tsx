@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { MAX_DEPTH, depthFor, depthMode, metres } from '@/lib/depth-store';
+import { Doodle } from '@/components/doodles';
 
 const SECTIONS: Record<string, { n: string; label: string }> = {
   '/': { n: '00', label: 'Cover' },
@@ -15,12 +15,10 @@ const SECTIONS: Record<string, { n: string; label: string }> = {
   '/terms': { n: '—', label: 'Terms' },
 };
 
-/** Running head: section, and how far through the sheet you are. */
+/** Running head: which sheet you are on, and how far down the page you have read. */
 export default function RunningHead() {
   const pathname = usePathname();
-  const sounding = useSyncExternalStore(depthMode.sub, depthMode.get, () => false);
   const [pct, setPct] = useState(0);
-  const [depth, setDepth] = useState(0);
 
   useEffect(() => {
     let frame = 0;
@@ -30,7 +28,6 @@ export default function RunningHead() {
       if (!el) return;
       const max = el.scrollHeight - el.clientHeight;
       setPct(max > 0 ? Math.min(100, Math.round((el.scrollTop / max) * 100)) : 100);
-      setDepth(depthFor(el.scrollTop, el.scrollHeight, el.clientHeight));
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(read);
@@ -49,13 +46,34 @@ export default function RunningHead() {
   const section = SECTIONS[key] ?? { n: '—', label: 'Hadal' };
 
   return (
-    <p className="mono-label tabular hidden sm:flex items-baseline gap-2 text-muted">
-      <span className="text-accent">§</span>
-      <span className="text-ink">{section.n}</span>
+    <p className="mono-label flex items-center gap-2.5">
+      <span className="text-marker">§</span>
+      <span className="tabular">{section.n}</span>
       <span>{section.label}</span>
-      <span className="text-rule">·</span>
-      <span className="text-ink">
-        {sounding ? metres(Math.round((depth / MAX_DEPTH) * MAX_DEPTH)) : `${pct}%`}
+      <span className="text-pencil">
+        <span className="lowercase tracking-normal">read</span>{' '}
+        <span className="tabular">{pct}%</span>
+      </span>
+
+      {/* the pencil travels along the line as you read */}
+      <span className="relative hidden h-5 w-28 items-center sm:flex" aria-hidden="true">
+        <svg
+          viewBox="0 0 120 14"
+          preserveAspectRatio="none"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          className="h-3 w-full text-ink/45"
+        >
+          <path d="M2 9c18-3.6 36-4.4 54-2.4 18 2 36 2.2 54 0" />
+        </svg>
+        <span
+          className="absolute top-0 h-4 w-4 text-marker"
+          style={{ left: `calc(${pct}% - 0.5rem)` }}
+        >
+          <Doodle name="pencil" className="h-4 w-4" strokeWidth={3.2} />
+        </span>
       </span>
     </p>
   );

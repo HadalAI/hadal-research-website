@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { sortedPosts } from '@/lib/posts';
+import { Rule as SketchRule } from '@/components/sketch';
+import { Doodle } from '@/components/doodles';
 
 export const metadata = { title: 'Notes' };
 
@@ -7,53 +9,70 @@ export default function BlogIndex() {
   const posts = sortedPosts();
 
   return (
-    <main className="mx-auto max-w-page px-6 md:px-10">
-      <header className="grid gap-10 border-b border-rule py-14 md:grid-cols-[1fr_260px] md:items-end">
+    <main className="mx-auto max-w-page px-5 md:px-10">
+      <header className="grid gap-8 pb-8 pt-10 md:grid-cols-[1fr_auto] md:items-end md:pt-14">
         <div>
-          <p className="mono-label">Section 03</p>
-          <h1 className="mt-5 font-sans text-[clamp(40px,6vw,64px)] font-medium leading-[0.96] tracking-[-0.03em]">
-            Notes
-          </h1>
-          <p className="mt-6 max-w-[52ch] font-serif text-[18px] leading-[1.55] text-muted">
-            Papers, and the method around them. Written when there is something to record, not on
-            a schedule.
+          <p className="label flex items-center gap-2 text-pencil">
+            <span className="ring text-[15px] text-marker">03</span>
+            section three
+          </p>
+          <h1 className="mt-4 font-marker text-[clamp(42px,7vw,70px)] leading-[0.95]">Notes</h1>
+          <p className="mt-5 max-w-[56ch] text-[20px] leading-snug text-pencil">
+            Papers, and the method around them. Written when there is something to record, not on a
+            schedule.
           </p>
         </div>
-        <dl className="border-t border-rule pt-4 md:border-l md:border-t-0 md:pl-10 md:pt-0">
-          <div className="flex justify-between gap-4">
-            <dt className="mono-label">Entries</dt>
-            <dd className="tabular font-mono text-[11px]">{String(posts.length).padStart(2, '0')}</dd>
-          </div>
-          <div className="mt-2 flex justify-between gap-4">
-            <dt className="mono-label">Latest</dt>
-            <dd className="font-mono text-[11px]">{posts[0]?.displayDate}</dd>
-          </div>
-        </dl>
+
+        <div className="sticky w-fit rotate-[-1.1deg] px-5 pb-4 pt-3">
+          <p className="label text-[14px] text-ink/70">the stack</p>
+          <p className="mt-1 flex items-baseline gap-2 text-[19px]">
+            <span className="tabular font-marker text-[34px] leading-none">
+              {String(posts.length).padStart(2, '0')}
+            </span>
+            <span className="text-pencil">entries</span>
+          </p>
+          <p className="text-[16px] text-pencil">latest · {posts[0]?.displayDate}</p>
+        </div>
       </header>
 
-      {posts.map((p) => (
-        <article key={p.slug} className="ink-row border-b border-rule py-10">
-          <div className="grid gap-4 md:grid-cols-[8rem_1fr_auto] md:items-baseline">
-            <div>
-              <p className="mono-label">{p.kind}</p>
-              <p className="mono-label mt-1">{p.displayDate}</p>
-            </div>
-            <div>
-              <h2 className="max-w-[30ch] font-serif text-[26px] leading-[1.18] tracking-[-0.01em]">
-                <Link href={`/blog/${p.slug}`} className="transition-colors hover:text-accent">
-                  {p.title}
-                </Link>
-              </h2>
-              <p className="mt-3 max-w-[62ch] font-serif text-[16px] leading-relaxed text-muted">
-                {p.summary}
-              </p>
-            </div>
-            <Link href={`/blog/${p.slug}`} className="link font-serif text-[16px]">
-              Read →
-            </Link>
-          </div>
-        </article>
-      ))}
+      <SketchRule className="text-ink" />
+
+      <ul>
+        {posts.map((p) => (
+          <li key={p.slug}>
+            <article className="ink-row group grid gap-3 py-8 md:grid-cols-[7.5rem_1fr_auto] md:items-baseline md:gap-6">
+              <div className="flex items-center gap-2 md:block">
+                <span className="inline-flex items-center gap-1.5">
+                  <Doodle
+                    name={p.kind === 'PAPER' ? 'pencil' : 'note'}
+                    className="h-4 w-4 text-marker"
+                    strokeWidth={3}
+                  />
+                  <span className="label text-[14px]">{p.kind}</span>
+                </span>
+                <p className="label mt-1 text-[14px] text-pencil md:block">{p.displayDate}</p>
+              </div>
+
+              <div>
+                <h2 className="max-w-[34ch] text-[26px] leading-[1.16]">
+                  <Link href={`/blog/${p.slug}`} className="group-hover:text-marker">
+                    {p.title}
+                  </Link>
+                </h2>
+                <p className="mt-2 max-w-[64ch] text-[18px] leading-snug text-pencil">
+                  {p.summary}
+                </p>
+              </div>
+
+              <Link href={`/blog/${p.slug}`} className="btn self-start text-[16px]">
+                read
+                <Doodle name="arrow" className="h-4 w-4" strokeWidth={3} />
+              </Link>
+            </article>
+            <SketchRule className="text-ink/30" />
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }

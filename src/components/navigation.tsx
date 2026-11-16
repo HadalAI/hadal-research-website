@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Doodle, type DoodleName } from '@/components/doodles';
 
-const links = [
-  { href: '/research', label: 'Research' },
-  { href: '/publications', label: 'Publications' },
-  { href: '/blog', label: 'Notes' },
-  { href: '/models', label: 'Models' },
-  { href: '/compute', label: 'Compute' },
+const links: { href: string; label: string; icon: DoodleName }[] = [
+  { href: '/research', label: 'Research', icon: 'compass' },
+  { href: '/publications', label: 'Publications', icon: 'book' },
+  { href: '/blog', label: 'Notes', icon: 'pencil' },
+  { href: '/models', label: 'Models', icon: 'bulb' },
+  { href: '/compute', label: 'Compute', icon: 'flask' },
 ];
 
 export default function Navigation() {
@@ -16,32 +17,63 @@ export default function Navigation() {
   const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <header className="border-b border-accent/35">
-      <div className="mx-auto flex max-w-page flex-wrap items-baseline justify-between gap-x-8 gap-y-3 px-6 py-6 md:px-10">
-        <Link href="/" id="wordmark" className="font-serif text-[26px] leading-none tracking-[-0.01em]">
-          Hadal<span className="text-accent">.</span>
+    <header id="top" className="mx-auto max-w-page px-5 pt-7 md:px-10 md:pt-9">
+      <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+        <Link href="/" className="group relative inline-block" aria-label="Hadal Research, home">
+          <span className="font-marker text-[42px] leading-[0.9] tracking-tight">
+            hadal<span className="text-marker">.</span>
+          </span>
+          <svg
+            viewBox="0 0 160 12"
+            preserveAspectRatio="none"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            className="mt-1 h-2.5 w-full text-ink/85"
+            aria-hidden="true"
+          >
+            <path d="M3 8.2c22-4.4 45-5.2 68-2.4 23 2.8 46 3.4 69 .8 7-1 14-1 17-.6" />
+          </svg>
         </Link>
 
-        <nav className="flex flex-wrap items-baseline gap-x-7 gap-y-2">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={`mono-label -my-1 py-1 !tracking-[0.07em] font-medium transition-colors hover:text-ink ${
-                isCurrent(l.href) ? 'text-ink' : ''
-              }`}
-            >
-              {l.label}
-            </Link>
-          ))}
+        <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 pb-1 sm:gap-x-5">
+          {links.map((l) => {
+            const active = isCurrent(l.href);
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={active ? 'page' : undefined}
+                className={`group inline-flex items-center gap-1.5 py-2 text-[19px] leading-none transition-colors hover:text-marker ${
+                  active ? 'text-ink' : 'text-ink/75'
+                }`}
+              >
+                <Doodle
+                  name={l.icon}
+                  className={`h-[18px] w-[18px] transition-transform group-hover:-rotate-6 ${
+                    active ? 'text-marker' : 'text-ink/50'
+                  }`}
+                  strokeWidth={2.9}
+                />
+                <span className={active ? 'swipe' : ''}>{l.label}</span>
+              </Link>
+            );
+          })}
+
           <a
             href="https://github.com/HadalAI"
             target="_blank"
             rel="noreferrer"
-            className="mono-label -my-1 py-1 !tracking-[0.07em] font-medium transition-colors hover:text-ink"
+            className="group inline-flex items-center gap-1 py-2 text-[19px] leading-none text-ink/75 transition-colors hover:text-marker"
             aria-label="HadalAI on GitHub"
           >
-            GitHub ↗
+            GitHub
+            <Doodle
+              name="plane"
+              className="h-[17px] w-[17px] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+              strokeWidth={3}
+            />
           </a>
         </nav>
       </div>

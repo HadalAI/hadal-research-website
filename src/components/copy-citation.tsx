@@ -16,7 +16,7 @@ export default function CopyCitation({ bibtex }: { bibtex: string }) {
   };
 
   return (
-    <button type="button" onClick={copy} className="link text-left" aria-live="polite">
+    <button type="button" onClick={copy} className="btn text-left" aria-live="polite">
       {state === 'copied' ? 'Citation copied ✓' : state === 'failed' ? 'Copy failed' : 'Cite this paper'}
     </button>
   );

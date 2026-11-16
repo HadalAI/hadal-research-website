@@ -27,7 +27,7 @@ export default function Term({ k, children }: { k: keyof typeof TERMS; children:
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onClick={() => setOpen((v) => !v)}
-        className="cursor-help border-b border-dotted border-accent/60 text-ink transition-colors hover:text-accent focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent"
+        className="cursor-help border-b-2 border-dashed border-marker/60 text-ink transition-colors hover:text-marker focus-visible:outline focus-visible:outline-2 focus-visible:outline-marker"
       >
         {children}
       </button>
@@ -35,7 +35,7 @@ export default function Term({ k, children }: { k: keyof typeof TERMS; children:
         <span
           id={id}
           role="note"
-          className="fixed bottom-3 left-1/2 z-50 block w-[min(30rem,calc(100vw-1.5rem))] -translate-x-1/2 border border-rule bg-paper-2 px-3 py-2 text-left font-serif text-[13px] leading-snug text-ink shadow-[2px_2px_0_rgba(23,23,26,0.08)]"
+          className="fixed bottom-3 left-1/2 z-50 block w-[min(30rem,calc(100vw-1.5rem))] -translate-x-1/2 -rotate-[0.5deg] border-[2.2px] border-ink bg-[#fff8dc] px-4 py-2.5 text-left text-[17px] leading-snug text-ink shadow-[3px_3px_0_#12100c]"
         >
           <span className="mono-label mb-1 block text-[10px]">Note · footnote</span>
           {TERMS[k]}

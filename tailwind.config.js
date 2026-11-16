@@ -4,21 +4,42 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        paper: '#f4f1e9',
-        'paper-2': '#eae6da',
-        ink: '#17171a',
-        muted: '#6a665c',
-        rule: '#d5cfc0',
-        accent: '#8a3324',
+        paper: '#fffdf7',
+        'paper-2': '#f8f3e2',
+        ink: '#12100c',
+        pencil: '#6b6353',
+        marker: '#cf3f22',
+        pen: '#26478c',
+        highlight: '#ffe680',
+        rule: '#12100c',
+        /* aliases kept so older post bodies keep their meaning after the restyle */
+        muted: '#6b6353',
+        accent: '#cf3f22',
       },
       fontFamily: {
-        serif: ['var(--font-plex-serif)', 'Iowan Old Style', 'Georgia', 'serif'],
-        sans: ['var(--font-plex-sans)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-plex-mono)', 'ui-monospace', 'monospace'],
+        marker: ['Permanent Marker', 'Marker Felt', 'Comic Sans MS', 'cursive'],
+        hand: ['Patrick Hand', 'Segoe Print', 'Comic Sans MS', 'cursive'],
+        note: ['Caveat', 'Bradley Hand', 'Segoe Print', 'cursive'],
+        serif: ['Patrick Hand', 'Segoe Print', 'Comic Sans MS', 'cursive'],
+        sans: ['Patrick Hand', 'Segoe Print', 'Comic Sans MS', 'cursive'],
       },
       maxWidth: {
-        page: '1120px',
-        measure: '64ch',
+        page: '1080px',
+        measure: '62ch',
+      },
+      boxShadow: {
+        sketch: '3px 3px 0 0 #12100c',
+        'sketch-lg': '5px 5px 0 0 #12100c',
+        'sketch-sm': '2px 2px 0 0 #12100c',
+      },
+      keyframes: {
+        wobble: {
+          '0%,100%': { transform: 'rotate(-0.5deg)' },
+          '50%': { transform: 'rotate(0.5deg)' },
+        },
+      },
+      animation: {
+        wobble: 'wobble 3.2s ease-in-out infinite',
       },
     },
   },
