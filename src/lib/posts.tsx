@@ -131,7 +131,6 @@ export const POSTS: Post[] = [
           caption="Table 1. Verdicts on 2,159 drifted edits. The program-change column is defined only for Python, so it is diluted by the non-Python share of the corpus; on Python edits alone, fuzzy matching changes the program in 4.5% of drifted cases and line ranges in 6.2%."
         />
 
-        <p className={P}>
         <h2 className={H2}>Is the drift real?</h2>
         <p className={P}>
           Both the earlier work and our matrix assume the file has moved, so we measured how often that
