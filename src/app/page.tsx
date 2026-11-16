@@ -1,37 +1,16 @@
 import Link from 'next/link';
-import { Frame, Circled, Rule as SketchRule, Stamp, DoodleBand } from '@/components/sketch';
-import { Doodle } from '@/components/doodles';
+import HeroDoodle from '@/components/hero-doodle';
+import DoodleChart from '@/components/doodle-chart';
+import Doodle from '@/components/doodles';
+import type { DoodleName } from '@/components/doodles';
+import { Paper, SectionTitle, HandRule, DoodleRow, Circled, PointArrow } from '@/components/sketch';
 import { MODELS, PROGRAMS, PUBLICATIONS } from '@/lib/lab';
 
-const CONTENTS = [
-  {
-    href: '/research',
-    title: 'Research',
-    note: 'Two programmes, published results only: what long context gets wrong, and what makes a number mean what it claims.',
-    meta: '2 programmes',
-    icon: 'compass' as const,
-  },
-  {
-    href: '/publications',
-    title: 'Publications',
-    note: 'Preprints with their records, code and correction logs attached.',
-    meta: '2 papers',
-    icon: 'book' as const,
-  },
-  {
-    href: '/blog',
-    title: 'Notes',
-    note: 'Method notes from the bench, written when there is something to record.',
-    meta: '3 entries',
-    icon: 'pencil' as const,
-  },
-  {
-    href: '/models',
-    title: 'Models',
-    note: 'HADAL-1, the vehicle for the architecture questions. Nothing released.',
-    meta: '0 released',
-    icon: 'bulb' as const,
-  },
+const CONTENTS: { href: string; title: string; note: string; meta: string; icon: DoodleName }[] = [
+  { href: '/research', title: 'Research', note: 'Two programmes, published results only: what long context gets wrong, and what makes a number mean what it claims.', meta: '2 programmes', icon: 'compass' },
+  { href: '/publications', title: 'Publications', note: 'Preprints with their records, code and correction logs attached.', meta: '2 papers', icon: 'book' },
+  { href: '/blog', title: 'Notes', note: 'Method notes from the bench, written when there is something to record.', meta: '3 entries', icon: 'pencil' },
+  { href: '/models', title: 'Models', note: 'HADAL-1, the vehicle for the architecture questions. Nothing released.', meta: '0 released', icon: 'bulb' },
 ];
 
 export default function HomePage() {
@@ -39,211 +18,184 @@ export default function HomePage() {
   const model = MODELS[0];
 
   return (
-    <main>
-      {/* ---------------------------------------------------------------- cover */}
-      <section className="mx-auto max-w-page px-5 pb-10 pt-10 md:px-10 md:pt-14">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
-          <div>
-            <p className="rise label flex items-center gap-2 text-pencil">
-              <Doodle name="asterisk" className="h-4 w-4 text-marker" strokeWidth={3.4} />
-              an independent research lab
-            </p>
+    <main className="mx-auto max-w-page px-5 md:px-10">
+      {/* ------------------------------------------------------------- cover */}
+      <section className="grid items-center gap-8 pt-10 lg:grid-cols-[1.05fr_0.95fr]">
+        <div>
+          <p className="label flex items-center gap-2">
+            <Doodle name="arrow" className="h-5 w-5 text-marker" />
+            an independent research lab
+          </p>
 
-            <h1 className="rise rise-1 mt-5 font-marker text-[clamp(46px,8vw,86px)] leading-[0.92] tracking-tight">
-              Research,
-              <br />
-              <Circled className="text-ink">at depth.</Circled>
-            </h1>
+          <h1 className="mt-4 font-marker text-[clamp(46px,8vw,88px)] leading-[0.93]">
+            Research,
+            <br />
+            <Circled>at depth.</Circled>
+          </h1>
 
-            <p className="rise rise-2 mt-8 max-w-[46ch] text-[20px] leading-[1.5] text-pencil">
+          <div className="mt-6 flex items-start gap-3">
+            <Doodle name="star" className="mt-1 h-7 w-7 shrink-0 text-marker" />
+            <p className="max-w-[46ch] text-[20px] leading-snug">
               We study hybrid language models — how attention, recurrence and retrieval are put
               together — and the measurement methods that decide whether a change is{' '}
-              <span className="swipe text-ink">real</span>.
-            </p>
-
-            <div className="rise rise-3 mt-8 flex flex-wrap items-center gap-4">
-              <Link href="/research" className="btn">
-                read the agenda
-                <Doodle name="arrow" className="h-5 w-5" strokeWidth={2.8} />
-              </Link>
-              <Link href={`/blog/${paper.slug}`} className="link text-[19px]">
-                read the latest paper
-              </Link>
-            </div>
-
-            <p className="rise rise-4 mt-8 flex items-center gap-3 text-[17px] text-pencil">
-              <Doodle name="pin" className="h-5 w-5 text-marker" />
-              Everything here is measured. Nothing here is promised.
+              <span className="highlight">real</span>.
             </p>
           </div>
 
+          <div className="mt-7 flex flex-wrap items-center gap-5">
+            <Link href="/research" className="btn">
+              read the agenda
+              <Doodle name="arrow" className="h-5 w-5" />
+            </Link>
+            <Link href={`/blog/${paper.slug}`} className="link text-[19px]">
+              read the latest paper
+            </Link>
+            <Doodle name="smile" className="h-7 w-7 text-marker" />
+          </div>
+
+          <p className="mt-6 flex items-center gap-2 text-[18px] text-pencil">
+            <Doodle name="check" className="h-5 w-5 text-marker" />
+            Everything here is measured. Nothing here is promised.
+          </p>
+        </div>
+
+        <div className="relative">
+          <HeroDoodle className="w-full" />
+          <p className="scrawl absolute bottom-1 right-2">fig. 1 — the descent</p>
         </div>
       </section>
 
-      <SketchRule className="text-ink" />
+      <HandRule />
 
-      {/* ---------------------------------------------------------------- contents */}
-      <section className="mx-auto max-w-page px-5 py-12 md:px-10">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="font-marker text-[30px] leading-none">Contents</h2>
-          <p className="label text-pencil">four sheets, no filler</p>
+      {/* ---------------------------------------------------------- contents */}
+      <section>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <SectionTitle icon="bookmark">Contents</SectionTitle>
+          <p className="scrawl">four sheets, no filler</p>
         </div>
 
-        <ul className="mt-8 grid gap-6 md:grid-cols-2">
+        <div className="mt-8 grid gap-7 md:grid-cols-2">
           {CONTENTS.map((c, i) => (
-            <li key={c.href}>
-              <Link href={c.href} className="block">
-                <Frame
-                  fill
-                  tape={i % 2 === 0}
-                  tilt={i % 3 === 0 ? 'l' : i % 3 === 1 ? 'r' : 'none'}
-                  className="hover-tilt h-full px-6 pb-6 pt-7"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <span className="ring text-marker">{String(i + 1).padStart(2, '0')}</span>
-                    <Doodle name={c.icon} className="h-9 w-9 text-ink/70" strokeWidth={2.5} />
-                  </div>
-                  <p className="mt-3 font-marker text-[27px] leading-none">{c.title}</p>
-                  <p className="mt-2.5 max-w-[42ch] text-[17px] leading-snug text-pencil">
-                    {c.note}
-                  </p>
-                  <p className="mt-4 flex items-center gap-2 text-[16px] text-ink/70">
-                    <Doodle name="bookmark" className="h-4 w-4 text-marker" strokeWidth={3} />
-                    {c.meta}
-                  </p>
-                </Frame>
-              </Link>
-            </li>
+            <Link key={c.href} href={c.href} className="hover-doodle">
+              <Paper variant={(i % 4) as 0 | 1 | 2 | 3} tilt={i % 2 === 0 ? 'l' : 'r'}>
+                <div className="flex items-start justify-between">
+                  <span className="font-marker text-[30px] text-marker">{String(i + 1).padStart(2, '0')}</span>
+                  <Doodle name={c.icon} className="h-10 w-10" strokeWidth={2.4} />
+                </div>
+                <p className="mt-2 font-marker text-[29px] leading-none">{c.title}</p>
+                <p className="mt-2 max-w-[42ch] text-[18px] leading-snug">{c.note}</p>
+                <p className="mt-3 flex items-center gap-2 text-[17px] text-pencil">
+                  <Doodle name="star" className="h-4 w-4 text-marker" />
+                  {c.meta}
+                </p>
+              </Paper>
+            </Link>
           ))}
-        </ul>
+        </div>
       </section>
 
-      <DoodleBand count={14} />
+      <HandRule />
 
-      {/* ---------------------------------------------------------------- recent paper */}
-      <section className="mx-auto max-w-page px-5 pb-4 md:px-10">
-        <Frame tape tilt="r" className="px-6 pb-8 pt-9 md:px-9">
-          <div className="grid gap-9">
-            <div>
-              <p className="label flex items-center gap-2 text-marker">
-                <Doodle name="star" className="h-4 w-4" strokeWidth={3} />
-                recent paper
-              </p>
-              <h2 className="mt-3 max-w-[30ch] text-[30px] leading-[1.12] md:text-[34px]">
-                <Link href={`/blog/${paper.slug}`} className="hover:text-marker">
-                  {paper.title}
-                </Link>
-              </h2>
-              <p className="mt-3 text-[17px] text-pencil">
-                {paper.authors} · {paper.displayDate} · {paper.version} · preprint
-              </p>
-              <p className="mt-5 max-w-[62ch] text-[18px] leading-[1.55] text-ink/85">
-                {paper.abstract}
-              </p>
-              <p className="mt-6 flex flex-wrap items-center gap-4">
-                <Link href={`/blog/${paper.slug}`} className="btn btn-red">
-                  read it
-                  <Doodle name="arrow" className="h-4 w-4" strokeWidth={3} />
-                </Link>
-                <a
-                  href="https://github.com/okyssta/llm-midpoint-anchor-study"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="link text-[18px]"
-                >
-                  records &amp; code
-                </a>
-              </p>
+      {/* ------------------------------------------------------ recent paper */}
+      <section>
+        <p className="label flex items-center gap-2">
+          <Doodle name="star" className="h-5 w-5 text-marker" />
+          recent paper
+        </p>
+        <div className="mt-4 grid items-center gap-8 lg:grid-cols-[1.5fr_0.8fr]">
+          <Paper variant={2} tilt="r">
+            <h2 className="max-w-[34ch] font-marker text-[30px] leading-tight md:text-[34px]">
+              <Link href={`/blog/${paper.slug}`} className="hover:text-marker">{paper.title}</Link>
+            </h2>
+            <p className="mt-2 flex items-center gap-2 text-[17px] text-pencil">
+              <Doodle name="pencil" className="h-4 w-4 text-marker" />
+              {paper.authors} · {paper.displayDate} · {paper.version} · preprint
+            </p>
+            <p className="mt-4 max-w-[62ch] text-[18px] leading-snug">{paper.abstract}</p>
+            <div className="mt-5 flex flex-wrap items-center gap-4">
+              <Link href={`/blog/${paper.slug}`} className="btn">
+                read it
+                <Doodle name="arrow" className="h-4 w-4" />
+              </Link>
+              <Link href={paper.links.find((l) => l.label.includes('records'))?.href ?? '/blog'} className="link text-[18px]">
+                records &amp; code
+              </Link>
+              <Doodle name="spiral" className="h-7 w-7 text-marker" />
             </div>
+          </Paper>
 
+          <div>
+            <DoodleChart
+              bars={[
+                { label: 'by frame', value: 99.8, display: '99.8%', color: 'var(--marker)' },
+                { label: 'by .strip()', value: 0.9, display: '0.9%' },
+              ]}
+              caption="same model · 1,762 files · no model in the loop"
+            />
+            <div className="flex justify-center"><PointArrow className="h-14 w-20" /></div>
           </div>
-        </Frame>
+        </div>
       </section>
 
-      <DoodleBand count={12} />
+      <HandRule />
 
-      {/* ---------------------------------------------------------------- model + method */}
-      <section className="mx-auto grid max-w-page gap-10 px-5 py-14 md:grid-cols-2 md:gap-14 md:px-10">
-        <div>
-          <p className="label flex items-center gap-2 text-pencil">
-            <Doodle name="bulb" className="h-4 w-4 text-marker" strokeWidth={3} />
-            the model
+      {/* --------------------------------------------------- model + method */}
+      <section className="grid gap-8 md:grid-cols-2">
+        <Paper variant={1} tilt="l">
+          <p className="label flex items-center gap-2">
+            <Doodle name="bulb" className="h-5 w-5 text-marker" /> the model
           </p>
-          <p className="mt-3 flex items-baseline gap-3 font-marker text-[32px] leading-none">
+          <p className="mt-2 flex items-center gap-3 font-marker text-[32px]">
             {model.name}
-            <Stamp className="translate-y-0.5">{model.status}</Stamp>
+            <Doodle name="clock" className="h-6 w-6 text-marker" />
           </p>
-          <p className="mt-4 text-[18px] leading-snug text-pencil">{model.description}</p>
-          <dl className="mt-6">
+          <p className="mt-3 text-[18px] leading-snug">{model.description}</p>
+          <div className="mt-4">
             {model.specs.map(([k, v]) => (
-              <div
-                key={k}
-                className="flex items-baseline justify-between gap-6 border-b border-dashed border-ink/30 py-2 last:border-0"
-              >
-                <dt className="label shrink-0 text-[14px] text-pencil">{k}</dt>
-                <dd className="text-right text-[16px] leading-tight">{v}</dd>
+              <p key={k} className="flex items-baseline justify-between gap-4 border-b border-dashed border-ink/25 py-1.5">
+                <span className="note">{k}</span><span className="text-right text-[17px]">{v}</span>
+              </p>
+            ))}
+          </div>
+        </Paper>
+
+        <Paper variant={3} tilt="r">
+          <p className="label flex items-center gap-2">
+            <Doodle name="flask" className="h-5 w-5 text-marker" /> the method
+          </p>
+          <p className="mt-2 font-marker text-[26px] leading-tight">Small studies, rebuilt from their records.</p>
+          <ul className="doodle-list mt-4 space-y-2 text-[18px] leading-snug">
+            <li><span className="highlight">Decision rules before data.</span> Margins are fixed ahead of the run.</li>
+            <li><span className="highlight">Paired by item.</span> One variable per contrast, so a difference can only come from the thing we changed.</li>
+            <li><span className="highlight">Negative results ship.</span> A cell with no effect is part of the result, not a footnote.</li>
+            <li><span className="highlight">Nothing to install.</span> The analysis path runs on the Python standard library.</li>
+          </ul>
+          <p className="mt-4 flex items-center gap-2">
+            <Doodle name="arrow" className="h-5 w-5 text-marker" />
+            <Link href="/research#measurement" className="link text-[18px]">read the method</Link>
+          </p>
+        </Paper>
+      </section>
+
+      <HandRule />
+
+      {/* -------------------------------------------------------- currently */}
+      <section className="pb-10">
+        <Paper variant={0}>
+          <p className="label flex items-center gap-2">
+            <Doodle name="eye" className="h-5 w-5 text-marker" /> currently
+          </p>
+          <DoodleRow count={10} />
+          <div className="grid gap-3 md:grid-cols-2">
+            {PROGRAMS.map((p) => (
+              <div key={p.slug} className="flex items-center gap-3">
+                <span className="font-marker text-[24px] text-marker">{p.id}</span>
+                <span className="text-[19px]">{p.title}</span>
+                <span className="ml-auto"><Circled className="note text-[17px] font-semibold uppercase text-marker">{p.status}</Circled></span>
               </div>
             ))}
-          </dl>
-        </div>
-
-        <div>
-          <p className="label flex items-center gap-2 text-pencil">
-            <Doodle name="flask" className="h-4 w-4 text-marker" strokeWidth={3} />
-            the method
-          </p>
-          <p className="mt-3 font-marker text-[26px] leading-tight">
-            Small studies, rebuilt from their records.
-          </p>
-          <ul className="doodle-list mt-5 space-y-3 text-[18px] leading-snug text-pencil">
-            <li>
-              <span className="text-ink">Decision rules before data.</span> Margins are fixed ahead
-              of the run and labelled apart from anything chosen afterwards.
-            </li>
-            <li>
-              <span className="text-ink">Paired by item.</span> One variable per contrast, so a
-              difference can only come from the thing we changed.
-            </li>
-            <li>
-              <span className="text-ink">Negative results ship.</span> A cell with no effect is part
-              of the result, not a footnote.
-            </li>
-            <li>
-              <span className="text-ink">Nothing to install.</span> The analysis path runs on the
-              Python standard library alone.
-            </li>
-          </ul>
-          <p className="mt-6">
-            <Link href="/research#measurement" className="link text-[18px]">
-              read the method
-            </Link>
-          </p>
-        </div>
-      </section>
-
-      {/* ---------------------------------------------------------------- currently */}
-      <section className="mx-auto max-w-page px-5 pb-16 md:px-10">
-        <Frame thin tilt="l" className="px-6 py-6">
-          <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <p className="label text-pencil">currently</p>
-            <Link href="/research" className="link text-[17px]">
-              all programmes
-            </Link>
           </div>
-          <ul className="mt-4 grid gap-x-10 gap-y-3 md:grid-cols-2">
-            {PROGRAMS.map((p, i) => (
-              <li key={p.slug} className="flex items-center gap-3">
-                <span className="ring text-[16px] text-marker">{p.id}</span>
-                <span className="text-[18px]">{p.title}</span>
-                <span className="ml-auto">
-                  <Stamp color={p.status === 'PUBLISHED' ? 'var(--marker)' : 'var(--pencil)'}>
-                    {p.status}
-                  </Stamp>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Frame>
+        </Paper>
       </section>
     </main>
   );

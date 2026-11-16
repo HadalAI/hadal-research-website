@@ -1,117 +1,85 @@
 import Link from 'next/link';
-import { PUBLICATIONS } from '@/lib/lab';
 import CopyCitation from '@/components/copy-citation';
-import { Frame, Stamp, Rule as SketchRule, DoodleBand } from '@/components/sketch';
-import { Doodle } from '@/components/doodles';
+import Doodle from '@/components/doodles';
+import { Paper, SectionTitle, HandRule, DoodleRow, Circled } from '@/components/sketch';
+import { PUBLICATIONS } from '@/lib/lab';
 
 export const metadata = { title: 'Publications' };
 
 export default function PublicationsPage() {
   return (
     <main className="mx-auto max-w-page px-5 md:px-10">
-      <header className="grid gap-8 pb-8 pt-10 md:grid-cols-[1fr_auto] md:items-end md:pt-14">
-        <div>
-          <p className="label flex items-center gap-2 text-pencil">
-            <span className="ring text-[15px] text-marker">02</span>
-            section two
-          </p>
-          <h1 className="mt-4 font-marker text-[clamp(42px,7vw,70px)] leading-[0.95]">
-            Publications
-          </h1>
-          <p className="mt-5 max-w-[56ch] text-[20px] leading-snug text-pencil">
-            Every entry carries its records and the analysis code that produced its numbers.
-            Preprints are labelled as preprints.
-          </p>
+      <header className="pt-10">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="label flex items-center gap-2">
+              <Doodle name="book" className="h-6 w-6 text-marker" /> section two
+            </p>
+            <h1 className="mt-3 font-marker text-[clamp(44px,7vw,72px)] leading-none">Publications</h1>
+            <p className="mt-5 max-w-[56ch] text-[20px] leading-snug">
+              Every entry carries its records and the analysis code that produced its numbers.
+              Preprints are labelled as preprints.
+            </p>
+          </div>
+          <Paper variant={2} tilt="r">
+            <p className="label">the tally</p>
+            <p className="mt-1 flex items-center gap-3 text-[19px]">
+              <Circled className="font-marker text-[32px]">{String(PUBLICATIONS.length).padStart(2, '0')}</Circled> papers
+            </p>
+            <p className="mt-1 flex items-center gap-3 text-[19px]">
+              <Circled className="font-marker text-[32px] text-pencil">00</Circled> peer reviewed
+            </p>
+          </Paper>
         </div>
-
-        <div className="sticky w-fit rotate-[-1deg] px-5 pb-4 pt-3">
-          <p className="label text-[14px] text-ink/70">the tally</p>
-          <p className="mt-1 flex items-baseline gap-2 text-[19px]">
-            <span className="tabular font-marker text-[34px] leading-none">
-              {String(PUBLICATIONS.length).padStart(2, '0')}
-            </span>
-            <span className="text-pencil">papers</span>
-          </p>
-          <p className="flex items-baseline gap-2 text-[19px]">
-            <span className="tabular font-marker text-[34px] leading-none text-pencil">00</span>
-            <span className="text-pencil">peer reviewed</span>
-          </p>
-        </div>
+        <DoodleRow count={12} className="justify-start !pb-0" />
       </header>
 
-      <SketchRule className="text-ink" />
+      <HandRule />
 
       {PUBLICATIONS.map((pub, i) => (
-        <article key={pub.slug} className="py-10">
-          {i > 0 && <DoodleBand count={12} />}
-          <Frame
-            fill
-            tape={i === 0}
-            tilt={i % 2 === 0 ? 'r' : 'l'}
-            className="px-6 pb-8 pt-7 md:px-9"
-          >
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="ring text-marker">{String(i + 1).padStart(2, '0')}</span>
-              <p className="label text-pencil">
-                {pub.displayDate} · {pub.venue}
-              </p>
-              <span className="ml-auto">
-                <Stamp>{pub.version}</Stamp>
-              </span>
+        <section key={pub.slug} className="mb-10">
+          {i > 0 && <DoodleRow count={9} />}
+          <Paper variant={(i + 1) as 1 | 2} tilt={i % 2 === 0 ? 'r' : 'l'}>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="font-marker text-[34px] text-marker">{String(i + 1).padStart(2, '0')}</span>
+              <p className="note">{pub.displayDate} · {pub.venue}</p>
+              <span className="ml-auto"><Circled className="note text-[18px] font-semibold uppercase text-marker">{pub.version}</Circled></span>
             </div>
 
-            <h2 className="mt-4 max-w-[34ch] text-[28px] leading-[1.14] md:text-[33px]">
-              <Link href={`/blog/${pub.slug}`} className="hover:text-marker">
-                {pub.title}
-              </Link>
+            <h2 className="mt-4 max-w-[34ch] font-marker text-[30px] leading-tight md:text-[35px]">
+              <Link href={`/blog/${pub.slug}`} className="hover:text-marker">{pub.title}</Link>
             </h2>
-            <p className="mt-2 flex items-center gap-2 text-[18px] text-pencil">
-              <Doodle name="pencil" className="h-4 w-4" strokeWidth={3} />
-              {pub.authors}
+            <p className="mt-2 flex items-center gap-2 text-[18px]">
+              <Doodle name="pencil" className="h-4 w-4 text-marker" /> {pub.authors}
             </p>
+            <p className="mt-4 max-w-[68ch] text-[18px] leading-snug">{pub.abstract}</p>
 
-            <p className="mt-5 max-w-[68ch] text-[18px] leading-[1.55] text-ink/85">
-              {pub.abstract}
-            </p>
-
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              {pub.links.map((l) =>
-                l.external ? (
-                  <a
-                    key={l.label}
-                    href={l.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn"
-                  >
-                    {l.label}
-                    <Doodle name="plane" className="h-4 w-4" strokeWidth={3} />
-                  </a>
-                ) : (
-                  <Link key={l.label} href={l.href} className="btn">
-                    {l.label}
-                    <Doodle name="arrow" className="h-4 w-4" strokeWidth={3} />
-                  </Link>
-                ),
-              )}
+            <div className="mt-5 flex flex-wrap items-center gap-4">
+              {pub.links.map((l) => l.external ? (
+                <a key={l.label} href={l.href} target="_blank" rel="noreferrer" className="btn">
+                  {l.label}<Doodle name="plane" className="h-4 w-4" />
+                </a>
+              ) : (
+                <Link key={l.label} href={l.href} className="btn">
+                  {l.label}<Doodle name="arrow" className="h-4 w-4" />
+                </Link>
+              ))}
               <CopyCitation bibtex={pub.bibtex} />
             </div>
 
-            <dl className="mt-7 grid grid-cols-2 gap-x-8 gap-y-3 md:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-x-8 gap-y-3 md:grid-cols-4">
               {[
-                ['type', 'preprint'],
-                ['review', 'not peer reviewed'],
-                ['licence', 'CC BY 4.0 · MIT code'],
-                ['priority', 'no claim'],
+                ['type', 'preprint'], ['review', 'not peer reviewed'],
+                ['licence', 'CC BY 4.0 · MIT code'], ['priority', 'no claim'],
               ].map(([k, v]) => (
-                <div key={k} className="border-t border-dashed border-ink/30 pt-2">
-                  <dt className="label text-[13px] text-pencil">{k}</dt>
-                  <dd className="text-[16px]">{v}</dd>
-                </div>
+                <p key={k} className="border-b border-dashed border-ink/25 pb-1">
+                  <span className="note block">{k}</span>
+                  <span className="text-[17px]">{v}</span>
+                </p>
               ))}
-            </dl>
-          </Frame>
-        </article>
+            </div>
+          </Paper>
+        </section>
       ))}
     </main>
   );

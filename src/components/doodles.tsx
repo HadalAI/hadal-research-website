@@ -168,17 +168,29 @@ const SHAPES: Record<string, ReactNode> = {
 export type DoodleName = keyof typeof SHAPES;
 
 export function Doodle({
-  name: _name,
-  className: _className = '',
-  strokeWidth: _strokeWidth = 2.6,
+  name,
+  className = '',
+  strokeWidth = 2.6,
 }: {
   name: DoodleName;
   className?: string;
   strokeWidth?: number;
 }) {
-  /* No icons on this site. The personality lives in the lettering, the wavy
-     underlines and the hand-ruled lines — not in a library of little glyphs. */
-  return null;
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      {SHAPES[name]}
+    </svg>
+  );
 }
 
 /** A horizontal line that was ruled by hand, not by a gradient. */
@@ -220,3 +232,5 @@ export function CurveArrow({ className = '', flip = false }: { className?: strin
     </svg>
   );
 }
+
+export default Doodle;

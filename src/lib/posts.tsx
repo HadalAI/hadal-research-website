@@ -16,14 +16,13 @@ export type Post = {
   links: { label: string; href: string; external?: boolean }[];
 };
 
-const P = 'mt-5 text-[19.5px] leading-[1.55] text-ink/85';
+const P = 'mt-5 text-[19.5px] leading-[1.55]';
 const LEAD = 'text-[21px] leading-[1.45] text-ink';
 const H2 = 'mt-11 font-marker text-[23px] leading-tight text-ink';
 const H3 = 'mt-7 font-marker text-[19px] leading-snug';
-const UL = 'doodle-list mt-4 space-y-2.5 text-[19px] leading-[1.55] text-ink/85';
-const CODE =
-  'mt-5 overflow-x-auto pl-4 font-mono text-[14px] leading-[1.75] text-ink';
-const NOTE = 'mt-8 border-l-[3px] border-marker pl-5 text-[18.5px] italic leading-snug text-pencil';
+const UL = 'doodle-list mt-4 space-y-2.5 text-[19px] leading-[1.55]';
+const CODE = 'code-doodle';
+const NOTE = 'scrawl mt-8 pl-4 text-[19px] leading-snug';
 
 function Table({
   head,
