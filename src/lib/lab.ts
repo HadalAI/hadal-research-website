@@ -103,7 +103,7 @@ export const PUBLICATIONS: Publication[] = [
   {
     slug: 'framing-newlines',
     title: 'Framing Newlines: how tool-call parsers rewrite the files agents write',
-    authors: 'Muhammad Ammar Imran',
+    authors: 'Kyssta',
     date: '2026-11-15',
     displayDate: '15 NOVEMBER 2026',
     version: 'v1',
@@ -112,7 +112,7 @@ export const PUBLICATIONS: Publication[] = [
     abstract:
       'Every open-weights agent model that emits tool calls in the Qwen/LFM3 XML framing writes each parameter value between one newline on either side. We rendered 1,762 real files as write_file calls and parsed them back with five parser implementations found in shipped code. Parsed by frame the format is invertible: 1,759 of 1,762 files return byte-identical, and the three failures contain the unescaped terminator. Parsed with .strip(), 15 survive. On a benchmark that grades file contents, a perfect model therefore scores 0.9% under the dominant client-side parser and 99.8% under the rule the reference server implementation uses \u2014 a 99-point swing with no model in the loop.',
     bibtex:
-      '@misc{imran2026framingnewlines, title = {Framing Newlines: how tool-call parsers rewrite the files agents write}, author = {Imran, Muhammad Ammar}, year = {2026}, note = {Preprint. Not peer reviewed.}, url = {https://hadal.run/blog/framing-newlines}}',
+      '@misc{kyssta2026framingnewlines, title = {Framing Newlines: how tool-call parsers rewrite the files agents write}, author = {Kyssta}, year = {2026}, note = {Preprint. Not peer reviewed.}, url = {https://hadal.run/blog/framing-newlines}}',
     links: [
       { label: 'Read on the blog', href: '/blog/framing-newlines' },
       { label: 'Paper (PDF)', href: '/papers/framing-newlines.pdf' },
@@ -126,14 +126,14 @@ export const PUBLICATIONS: Publication[] = [
   {
     slug: 'changing-one-word',
     title: 'Changing One Word: a paired test of anchor direction in list indexing',
-    authors: 'Muhammad Ammar Imran',
+    authors: 'Kyssta',
     date: '2026-10-27',
     displayDate: '27 OCTOBER 2026',
     version: 'v6',
     venue: 'PREPRINT · NOT PEER REVIEWED',
     status: 'PUBLISHED',
     bibtex:
-      '@misc{imran2026changingoneword, title = {Changing One Word: a paired test of anchor direction in list indexing}, author = {Imran, Muhammad Ammar}, year = {2026}, note = {Preprint, v6. Not peer reviewed.}, url = {https://github.com/okyssta/llm-midpoint-anchor-study}}',
+      '@misc{kyssta2026changingoneword, title = {Changing One Word: a paired test of anchor direction in list indexing}, author = {Kyssta}, year = {2026}, note = {Preprint, v6. Not peer reviewed.}, url = {https://github.com/okyssta/llm-midpoint-anchor-study}}',
     abstract:
       'For an odd-length list, the middle item can be requested two ways that name the same item at the same ordinal: “5th position from the beginning” and “5th position from the end”. Only the anchor word differs. On Qwen2.5-1.5B-Instruct with 9-item lists, the backward wording reduces accuracy by 33.3 percentage points (paired difference −33.3 pp, 95% CI [−51.2, −11.6], exact McNemar p = 0.00781), and the estimated effect differs between the two question templates tested. The reduction is established; the pre-specified 15-point practical margin is not cleared.',
     links: [
