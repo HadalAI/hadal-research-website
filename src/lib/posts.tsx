@@ -80,7 +80,7 @@ export const POSTS: Post[] = [
     authors: 'Kyssta',
     readingTime: '8 min',
     summary:
-      'Agent harnesses send file edits as whole files, SEARCH/REPLACE blocks, diffs, apply_patch envelopes or line ranges. When the file has drifted — a formatter, a checkout, an editor — exact matchers refuse and fuzzy or line-number formats apply the edit to the wrong place. We measured it on 696 real files: two formats never fail safe, and up to 6.2% of their drifted Python edits change the program.',
+      'Agent harnesses send file edits as whole files, SEARCH/REPLACE blocks, diffs, apply_patch envelopes or line ranges. When the file has drifted — a formatter, a checkout, an editor — exact matchers refuse and fuzzy or line-number formats apply the edit to the wrong place. On 696 real files, two formats never failed safe and up to 6.2% of their drifted Python edits changed the program. The distinction was established by Althoubi (2026) and Wan et al. (2026); this is a replication with a wider drift matrix and parser-level grading.',
     tags: ['tool use', 'evaluation', 'editing', 'agents'],
     links: [
       { label: 'Paper (PDF)', href: '/papers/edit-protocols.pdf' },
@@ -90,7 +90,15 @@ export const POSTS: Post[] = [
       <>
         <p className={LEAD}>
           An edit format decides what happens when the file is not the one the model read. Two of the
-          common formats answer that by editing anyway.
+          common formats answer that by editing anyway — which earlier work already showed, and which we
+          re-measured to see whether a formatter changes the picture.
+        </p>
+
+        <p className={NOTE}>
+          Prior work: Althoubi, <i>Look Before You Leap</i> (arXiv:2609.11957) establishes the
+          content-anchored versus location-anchored split on 640 edits; Wan et al. (preprints.org,
+          Oct 2026) compare line ranges with search/replace across six models. This note is a replication
+          and extension, not a new claim.
         </p>
 
         <p className={P}>
