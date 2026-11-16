@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Doodle, type DoodleName } from './doodles';
 
 /** Filters that make every 2px border look drawn. Mounted once, used by CSS. */
 export function RoughDefs() {
@@ -110,20 +111,49 @@ export function Stamp({
   );
 }
 
-/** A hairline drawn by hand. */
-export function Rule({ className = '' }: { className?: string }) {
+const BAND: DoodleName[] = [
+  'star', 'flower', 'wave', 'eye', 'fish', 'sun', 'leaf', 'asterisk',
+  'heart', 'smile', 'cloud', 'pencil', 'compass', 'bulb', 'note', 'spiral',
+];
+
+/** A scatter of small ink drawings. Decorative; never a container. */
+export function DoodleBand({
+  className = '',
+  count = 10,
+}: {
+  className?: string;
+  count?: number;
+}) {
+  void BAND;
+  void count;
+  void className;
+  /* No icon bands. Rules stay; the glyphs are gone. */
+  return null;
+}
+
+/** A hairline drawn by hand, with a scatter of doodles above it. */
+export function Rule({
+  className = '',
+  doodles = true,
+}: {
+  className?: string;
+  doodles?: boolean;
+}) {
   return (
-    <svg
-      viewBox="0 0 800 10"
-      preserveAspectRatio="none"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      className={`h-2.5 w-full opacity-80 ${className}`}
-      aria-hidden="true"
-    >
-      <path d="M3 6.2c66-3 132-4 198-1.4 66 2.6 132 3.2 198 .8 66-2.4 132-3 198-.4 60 2.4 120 2.6 180-.2" />
-    </svg>
+    <>
+      {doodles && <DoodleBand />}
+      <svg
+        viewBox="0 0 800 10"
+        preserveAspectRatio="none"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        className={`h-2.5 w-full opacity-80 ${className}`}
+        aria-hidden="true"
+      >
+        <path d="M3 6.2c66-3 132-4 198-1.4 66 2.6 132 3.2 198 .8 66-2.4 132-3 198-.4 60 2.4 120 2.6 180-.2" />
+      </svg>
+    </>
   );
 }

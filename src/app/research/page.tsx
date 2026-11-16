@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { PROGRAMS } from '@/lib/lab';
-import { Frame, Stamp, Rule as SketchRule } from '@/components/sketch';
+import { Frame, Stamp, Rule as SketchRule, DoodleBand } from '@/components/sketch';
 import { Doodle, CurveArrow } from '@/components/doodles';
 
 export const metadata = { title: 'Research' };
@@ -20,6 +20,7 @@ export default function ResearchPage() {
             there is more of it than it can index, and what it takes for a number to mean what it
             claims.
           </p>
+          <p className="margin-note mt-2">only what has been measured.</p>
         </div>
 
         <div className="sticky w-fit rotate-[1.2deg] px-5 pb-4 pt-3">
@@ -43,6 +44,7 @@ export default function ResearchPage() {
 
       {PROGRAMS.map((p, i) => (
         <article key={p.slug} id={p.slug} className="scroll-mt-8 py-10">
+          {i > 0 && <DoodleBand count={12} />}
           <Frame fill tape={i % 2 === 0} tilt={i % 2 === 0 ? 'l' : 'r'} className="px-6 pb-8 pt-7 md:px-9">
             <div className="flex flex-wrap items-center gap-3">
               <span className="ring text-marker">{p.id}</span>

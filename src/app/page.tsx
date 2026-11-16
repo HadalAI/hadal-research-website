@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import HeroDoodle from '@/components/hero-doodle';
-import CopyValue from '@/components/copy-value';
-import { Frame, Circled, Rule as SketchRule, Stamp } from '@/components/sketch';
+import { Frame, Circled, Rule as SketchRule, Stamp, DoodleBand } from '@/components/sketch';
 import { Doodle } from '@/components/doodles';
+import DoodleChart from '@/components/doodle-chart';
 import { MODELS, PROGRAMS, PUBLICATIONS } from '@/lib/lab';
 
 const CONTENTS = [
@@ -77,6 +77,7 @@ export default function HomePage() {
               <Doodle name="pin" className="h-5 w-5 text-marker" />
               Everything here is measured. Nothing here is promised.
             </p>
+            <p className="margin-note mt-2 pl-9">psst — the numbers are in the paper</p>
           </div>
 
           <div className="relative">
@@ -126,6 +127,8 @@ export default function HomePage() {
         </ul>
       </section>
 
+      <DoodleBand count={14} />
+
       {/* ---------------------------------------------------------------- recent paper */}
       <section className="mx-auto max-w-page px-5 pb-4 md:px-10">
         <Frame tape tilt="r" className="px-6 pb-8 pt-9 md:px-9">
@@ -162,36 +165,22 @@ export default function HomePage() {
               </p>
             </div>
 
-            <aside className="relative">
-              <div className="sticky rotate-[-1.4deg] px-5 pb-5 pt-4">
-                <p className="label text-ink/70">headline result</p>
-                <div className="mt-1">
-                  <CopyValue
-                    value="−33.3"
-                    copy="−33.3 pp (95% CI [−51.2, −11.6], exact McNemar p = 0.00781), Qwen2.5-1.5B-Instruct, L=9"
-                    hint="click to copy the figure"
-                    className="tabular font-marker text-[52px] leading-none text-ink"
-                  />
-                </div>
-                <p className="mt-1 text-[16px] text-ink/70">pp · backward vs forward</p>
-                <dl className="mt-3 space-y-1">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <dt className="label text-[15px] text-pencil">95% ci</dt>
-                    <dd className="tabular text-[17px]">[−51.2, −11.6]</dd>
-                  </div>
-                  <div className="flex items-baseline justify-between gap-3">
-                    <dt className="label text-[15px] text-pencil">exact p</dt>
-                    <dd className="tabular text-[17px]">0.00781</dd>
-                  </div>
-                </dl>
-                <p className="mt-2 text-[16px] leading-snug text-ink/70">
-                  margin not cleared · Qwen2.5-1.5B
-                </p>
-              </div>
+            <aside>
+              <p className="label text-ink/70">same model, two parsers</p>
+              <DoodleChart
+                className="mt-2"
+                bars={[
+                  { label: 'by frame', value: 99.8, display: '99.8%', color: 'var(--marker)' },
+                  { label: 'by .strip()', value: 0.9, display: '0.9%' },
+                ]}
+                caption="1,762 files · no model in the loop"
+              />
             </aside>
           </div>
         </Frame>
       </section>
+
+      <DoodleBand count={12} />
 
       {/* ---------------------------------------------------------------- model + method */}
       <section className="mx-auto grid max-w-page gap-10 px-5 py-14 md:grid-cols-2 md:gap-14 md:px-10">

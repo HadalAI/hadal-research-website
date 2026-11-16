@@ -51,7 +51,32 @@ body {
 .font-marker, .marker {
   font-family: 'Permanent Marker', 'Marker Felt', cursive;
   font-weight: 400;
-  letter-spacing: 0.005em;
+  letter-spacing: 0.015em;
+}
+
+/* the lettering itself leans and scribbles — no icons needed */
+main h1 {
+  transform: rotate(-0.55deg);
+  transform-origin: left center;
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 2px;
+  text-decoration-color: rgba(18, 16, 12, 0.22);
+  text-underline-offset: 13px;
+}
+main h2 { transform: rotate(-0.2deg); transform-origin: left center; }
+main p, main li { transform: rotate(-0.06deg); transform-origin: left center; }
+.label { transform: rotate(-0.9deg); transform-origin: left center; }
+
+/* a margin note written in the ink, not pinned on as a badge */
+.margin-note {
+  font-family: 'Caveat', cursive;
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: 0.01em;
+  color: var(--marker);
+  transform: rotate(-1.8deg);
+  transform-origin: left center;
 }
 
 .note, .label {
@@ -171,41 +196,24 @@ body {
   text-decoration-color: rgba(38, 71, 140, 0.5);
 }
 
-/* ---------------------------------------------------------------- frames */
+/* ------------------------------------------------------------ no containers */
 
-/* a box drawn by hand: wobbly edge via an SVG displacement filter */
-.sketch {
-  position: relative;
-  isolation: isolate;
-}
 /*
- * The edge is drawn, not printed: asymmetric radii keep every corner off-square,
- * the card sits a fraction of a degree off level, and a displacement filter
- * roughens the line itself. The filter is the expensive part: rendering the home
- * page to PDF takes 0.64s without it and 1.59s with it on a 2-vCPU software
- * rasteriser (median of 3). That is an acceptable price for the whole look, so it
- * is applied to borders only — never to a filled or text-bearing box — and the
- * turbulence is kept at two octaves.
+ * Nothing here is a box. Sections are separated by hand-ruled lines and small
+ * drawings, and the paper itself is the only surface. These classes are kept so
+ * page markup stays readable; the "frame", "fill", "tape" and "sticky" props now
+ * render as open ink rather than as cards.
  */
-.sketch::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 2.5px solid var(--ink);
-  border-radius: var(--wobble);
-  filter: url(#rough-2);
-  pointer-events: none;
-  z-index: 0;
-}
-.sketch > * { position: relative; z-index: 1; }
+.sketch { position: relative; }
+.sketch > * { position: relative; }
+.sketch-fill, .sketch-thin, .sketch-dashed { background: transparent; box-shadow: none; }
+.tape::after { display: none; }
 
-.sketch-fill {
-  background: var(--paper-2);
-  box-shadow: 4px 4px 0 rgba(18, 16, 12, 0.9);
+.sticky {
+  background: transparent;
+  box-shadow: none;
+  transform: rotate(-1deg);
 }
-
-.sketch-thin::before { border-width: 1.8px; }
-.sketch-dashed::before { border-style: dashed; }
 
 /* rotated variants — nothing on this site is perfectly straight */
 .tilt-l { transform: rotate(-0.45deg); }
@@ -213,72 +221,71 @@ body {
 .tilt-l-lg { transform: rotate(-1.1deg); }
 .tilt-r-lg { transform: rotate(1.2deg); }
 
-/* masking tape on a card corner */
-.tape::after {
-  content: '';
-  position: absolute;
-  top: -13px;
-  left: 50%;
-  width: 104px;
-  height: 26px;
-  transform: translateX(-50%) rotate(-1.9deg) skewX(1.5deg);
-  background: rgba(255, 228, 138, 0.72);
-  border-radius: 2px 6px 3px 5px;
-  box-shadow: 0 1px 2px rgba(18, 16, 12, 0.14);
-  z-index: 2;
-}
+/* ------------------------------------------------------- links as buttons */
 
-/* sticky note — torn off a pad, so no edge is straight */
-.sticky {
-  background: #fff3b0;
-  border-radius: 7px 13px 6px 15px / 13px 6px 14px 7px;
-  box-shadow: 3px 4px 0 rgba(18, 16, 12, 0.16), inset 0 -6px 10px rgba(18, 16, 12, 0.05);
-}
-
-/* ---------------------------------------------------------------- buttons */
-
+/* a button is a word with a wavy line under it and a doodle arrow beside it */
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.45em;
-  padding: 0.34em 1.05em 0.42em;
-  border: 2.2px solid var(--ink);
-  border-radius: 14px 5px 16px 6px / 6px 15px 5px 14px;
-  background: var(--paper);
+  gap: 0.5em;
+  padding: 0.08em 0.1em 0.14em;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--ink);
   font-family: 'Patrick Hand', cursive;
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.3;
-  box-shadow: 2.5px 2.5px 0 var(--ink);
-  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 2px;
+  text-decoration-color: currentColor;
+  text-underline-offset: 6px;
+  transition: transform 140ms ease, color 140ms ease, text-decoration-color 140ms ease;
 }
 .btn:hover {
-  transform: translate(-1.5px, -1.5px) rotate(-0.6deg);
-  box-shadow: 4px 4px 0 var(--ink);
-  background: var(--highlight);
+  color: var(--marker);
+  text-decoration-color: var(--marker);
+  transform: rotate(-0.8deg) translateY(-2px);
 }
-.btn:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 var(--ink);
-}
+.btn:active { transform: translateY(1px); }
 .btn-red { color: var(--marker); }
 
-/* ---------------------------------------------------------------- stamps */
+/* ------------------------------------------------------------------ marks */
 
+/* a stamp is handwriting in the margin, not a rubber rectangle */
 .stamp {
   display: inline-block;
-  padding: 0.06em 0.5em 0.14em;
-  border: 2.2px solid currentColor;
-  border-radius: 10px 4px 12px 5px / 5px 11px 4px 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   font-family: 'Caveat', cursive;
   font-weight: 600;
-  font-size: 15px;
-  letter-spacing: 0.16em;
+  font-size: 19px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  line-height: 1.4;
-  transform: rotate(-2.2deg);
-  filter: url(#rough);
+  line-height: 1.3;
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-decoration-color: currentColor;
+  transform: rotate(-2.4deg);
 }
+
+/* ink annotations scattered through the page */
+.doodle-band {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.6rem;
+  padding: 0.6rem 0;
+  opacity: 0.72;
+}
+.doodle-band svg:nth-child(3n) { color: var(--marker); transform: rotate(-9deg); }
+.doodle-band svg:nth-child(4n) { transform: rotate(8deg); }
 
 /* ---------------------------------------------------------------- lists */
 
@@ -304,26 +311,21 @@ body {
   background: var(--marker);
 }
 
-/* number in a hand-drawn circle */
+/* numbers are written and underlined, never enclosed */
 .ring {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.4rem;
-  height: 2.4rem;
+  display: inline-block;
   font-family: 'Caveat', cursive;
   font-weight: 600;
-  font-size: 20px;
+  font-size: 24px;
+  line-height: 1.1;
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 2px;
+  text-decoration-color: currentColor;
+  text-underline-offset: 4px;
 }
-.ring::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border: 2px solid currentColor;
-  border-radius: 48% 52% 46% 54% / 54% 47% 53% 46%;
-  filter: url(#rough);
-}
+.ring::before { content: none; }
 
 /* ---------------------------------------------------------------- tables */
 
@@ -342,16 +344,34 @@ body {
   letter-spacing: 0.12em;
   font-size: 15px;
   color: var(--ink);
-  padding: 6px 14px 6px 0;
-  border-bottom: 2.4px solid var(--ink);
+  padding: 6px 14px 11px 0;
+  border-bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='7' viewBox='0 0 120 7'%3E%3Cpath d='M1 4c15-3 30-3 45 0s30 3 45 0 28-3 44 0' fill='none' stroke='%2312100c' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: left bottom;
+  background-size: 120px 7px;
   white-space: nowrap;
 }
 .paper-table td {
-  padding: 7px 14px 7px 0;
-  border-bottom: 1.5px dashed rgba(18, 16, 12, 0.35);
+  padding: 7px 14px 11px 0;
+  border-bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='7' viewBox='0 0 120 7'%3E%3Cpath d='M1 4c15-3 30-3 45 0s30 3 45 0 28-3 44 0' fill='none' stroke='%2312100c' stroke-opacity='.32' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: left bottom;
+  background-size: 120px 7px;
   white-space: nowrap;
 }
-.paper-table tbody tr:last-child td { border-bottom: 2px solid rgba(18, 16, 12, 0.75); }
+.paper-table tbody tr:last-child td { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='7' viewBox='0 0 120 7'%3E%3Cpath d='M1 4c15-3 30-3 45 0s30 3 45 0 28-3 44 0' fill='none' stroke='%2312100c' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+
+/* a table starts on a ruled line, the way a notebook page does */
+.doodle-table-wrap {
+  overflow-x: auto;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='7' viewBox='0 0 120 7'%3E%3Cpath d='M1 4c15-3 30-3 45 0s30 3 45 0 28-3 44 0' fill='none' stroke='%2312100c' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: left top;
+  background-size: 120px 7px;
+  padding-top: 9px;
+}
 .paper-table tbody tr { transition: background-color 120ms ease; }
 .paper-table tbody tr:hover { background-color: rgba(255, 230, 128, 0.35); }
 

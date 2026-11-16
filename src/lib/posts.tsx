@@ -18,12 +18,11 @@ export type Post = {
 
 const P = 'mt-5 text-[19.5px] leading-[1.55] text-ink/85';
 const LEAD = 'text-[21px] leading-[1.45] text-ink';
-const H2 =
-  'mt-11 font-marker text-[23px] leading-tight text-ink before:mr-2 before:text-marker before:content-["✎"]';
+const H2 = 'mt-11 font-marker text-[23px] leading-tight text-ink';
 const H3 = 'mt-7 font-marker text-[19px] leading-snug';
 const UL = 'doodle-list mt-4 space-y-2.5 text-[19px] leading-[1.55] text-ink/85';
 const CODE =
-  'mt-6 overflow-x-auto border-l-[3px] border-marker bg-[#f6efdb] px-5 py-4 font-mono text-[14px] leading-[1.75] text-ink';
+  'mt-6 overflow-x-auto border-l-[3px] border-dashed border-marker/70 pl-5 font-mono text-[14px] leading-[1.75] text-ink';
 const NOTE = 'mt-8 border-l-[3px] border-marker pl-5 text-[18.5px] italic leading-snug text-pencil';
 
 function Table({
@@ -37,7 +36,7 @@ function Table({
 }) {
   return (
     <figure className={`mt-8 ${head.length > 3 ? 'lg:-mx-16 xl:-mx-24' : ''}`}>
-      <div className="overflow-x-auto border-t-[2.5px] border-ink">
+      <div className="doodle-table-wrap">
         <table
           className={`paper-table text-left ${head.length > 3 ? 'min-w-[660px]' : 'min-w-[300px]'}`}
         >

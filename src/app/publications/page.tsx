@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { PUBLICATIONS } from '@/lib/lab';
 import CopyCitation from '@/components/copy-citation';
-import { Frame, Stamp, Rule as SketchRule } from '@/components/sketch';
+import { Frame, Stamp, Rule as SketchRule, DoodleBand } from '@/components/sketch';
 import { Doodle } from '@/components/doodles';
 
 export const metadata = { title: 'Publications' };
@@ -22,6 +22,7 @@ export default function PublicationsPage() {
             Every entry carries its records and the analysis code that produced its numbers.
             Preprints are labelled as preprints.
           </p>
+          <p className="margin-note mt-2">preprints, on purpose.</p>
         </div>
 
         <div className="sticky w-fit rotate-[-1deg] px-5 pb-4 pt-3">
@@ -43,6 +44,7 @@ export default function PublicationsPage() {
 
       {PUBLICATIONS.map((pub, i) => (
         <article key={pub.slug} className="py-10">
+          {i > 0 && <DoodleBand count={12} />}
           <Frame
             fill
             tape={i === 0}

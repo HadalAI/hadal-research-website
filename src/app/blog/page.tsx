@@ -21,6 +21,7 @@ export default function BlogIndex() {
             Papers, and the method around them. Written when there is something to record, not on a
             schedule.
           </p>
+          <p className="margin-note mt-2">written when there is something to record.</p>
         </div>
 
         <div className="sticky w-fit rotate-[-1.1deg] px-5 pb-4 pt-3">
