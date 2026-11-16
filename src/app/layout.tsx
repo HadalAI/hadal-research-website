@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <RoughDefs />
 
         {/* the top strip, ruled like a notebook margin */}
-        <div className="border-b-2 border-ink/70">
+        <div>
           <div className="mx-auto flex max-w-page flex-wrap items-center justify-between gap-x-6 gap-y-1 px-5 py-2 md:px-10">
             <p className="mono-label flex items-center gap-2">
               <Doodle name="asterisk" className="h-4 w-4" strokeWidth={3.4} />
@@ -59,13 +59,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   A small lab working on hybrid language models, and on the measurement methods
                   that decide whether a change is real.
                 </p>
-                <div className="mt-5 flex gap-2 text-ink/80">
-                  <Doodle name="wave" className="h-7 w-7" />
-                  <Doodle name="fish" className="hidden h-7 w-7" />
-                  <Doodle name="flower" className="h-7 w-7" />
-                  <Doodle name="star" className="h-7 w-7" />
-                  <Doodle name="heart" className="h-7 w-7" />
-                </div>
               </div>
 
               <div>
@@ -111,10 +104,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/terms" className="link text-[17px]">
                   Terms
                 </Link>
-                <a href="#top" className="btn text-[16px]">
-                  back to top
-                  <Doodle name="arrowDown" className="h-4 w-4 -scale-y-100" strokeWidth={3.2} />
-                </a>
+                <a href="#top" className="link text-[16px]">back to top</a>
               </p>
             </div>
           </div>

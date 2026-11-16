@@ -1,8 +1,6 @@
 import Link from 'next/link';
-import HeroDoodle from '@/components/hero-doodle';
 import { Frame, Circled, Rule as SketchRule, Stamp, DoodleBand } from '@/components/sketch';
 import { Doodle } from '@/components/doodles';
-import DoodleChart from '@/components/doodle-chart';
 import { MODELS, PROGRAMS, PUBLICATIONS } from '@/lib/lab';
 
 const CONTENTS = [
@@ -77,15 +75,8 @@ export default function HomePage() {
               <Doodle name="pin" className="h-5 w-5 text-marker" />
               Everything here is measured. Nothing here is promised.
             </p>
-            <p className="margin-note mt-2 pl-9">psst — the numbers are in the paper</p>
           </div>
 
-          <div className="relative">
-            <HeroDoodle className="w-full text-ink" />
-            <p className="note absolute -bottom-2 right-2 rotate-[-2deg] text-[19px] text-pencil">
-              fig. 1 — the descent
-            </p>
-          </div>
         </div>
       </section>
 
@@ -132,7 +123,7 @@ export default function HomePage() {
       {/* ---------------------------------------------------------------- recent paper */}
       <section className="mx-auto max-w-page px-5 pb-4 md:px-10">
         <Frame tape tilt="r" className="px-6 pb-8 pt-9 md:px-9">
-          <div className="grid gap-9 lg:grid-cols-[1.5fr_0.75fr]">
+          <div className="grid gap-9">
             <div>
               <p className="label flex items-center gap-2 text-marker">
                 <Doodle name="star" className="h-4 w-4" strokeWidth={3} />
@@ -165,17 +156,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            <aside>
-              <p className="label text-ink/70">same model, two parsers</p>
-              <DoodleChart
-                className="mt-2"
-                bars={[
-                  { label: 'by frame', value: 99.8, display: '99.8%', color: 'var(--marker)' },
-                  { label: 'by .strip()', value: 0.9, display: '0.9%' },
-                ]}
-                caption="1,762 files · no model in the loop"
-              />
-            </aside>
           </div>
         </Frame>
       </section>

@@ -19,22 +19,10 @@ export default function Navigation() {
   return (
     <header id="top" className="mx-auto max-w-page px-5 pt-7 md:px-10 md:pt-9">
       <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
-        <Link href="/" className="group relative inline-block" aria-label="Hadal Research, home">
+        <Link href="/" className="group inline-block" aria-label="Hadal Research, home">
           <span className="font-marker text-[42px] leading-[0.9] tracking-tight">
             hadal<span className="text-marker">.</span>
           </span>
-          <svg
-            viewBox="0 0 160 12"
-            preserveAspectRatio="none"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.6"
-            strokeLinecap="round"
-            className="mt-1 h-2.5 w-full text-ink/85"
-            aria-hidden="true"
-          >
-            <path d="M3 8.2c22-4.4 45-5.2 68-2.4 23 2.8 46 3.4 69 .8 7-1 14-1 17-.6" />
-          </svg>
         </Link>
 
         <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 pb-1 sm:gap-x-5">

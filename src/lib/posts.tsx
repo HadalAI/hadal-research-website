@@ -22,7 +22,7 @@ const H2 = 'mt-11 font-marker text-[23px] leading-tight text-ink';
 const H3 = 'mt-7 font-marker text-[19px] leading-snug';
 const UL = 'doodle-list mt-4 space-y-2.5 text-[19px] leading-[1.55] text-ink/85';
 const CODE =
-  'mt-6 overflow-x-auto border-l-[3px] border-dashed border-marker/70 pl-5 font-mono text-[14px] leading-[1.75] text-ink';
+  'mt-5 overflow-x-auto pl-4 font-mono text-[14px] leading-[1.75] text-ink';
 const NOTE = 'mt-8 border-l-[3px] border-marker pl-5 text-[18.5px] italic leading-snug text-pencil';
 
 function Table({

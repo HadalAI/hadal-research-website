@@ -20,7 +20,6 @@ export default function ResearchPage() {
             there is more of it than it can index, and what it takes for a number to mean what it
             claims.
           </p>
-          <p className="margin-note mt-2">only what has been measured.</p>
         </div>
 
         <div className="sticky w-fit rotate-[1.2deg] px-5 pb-4 pt-3">
