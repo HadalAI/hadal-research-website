@@ -7,8 +7,8 @@ const CONTENTS = [
   {
     href: '/research',
     title: 'Research',
-    note: 'One programme, published results only: what long context actually gets wrong.',
-    meta: '1 programme',
+    note: 'Two programmes, published results only: what long context gets wrong, and what makes a number mean what it claims.',
+    meta: '2 programmes',
   },
   {
     href: '/publications',

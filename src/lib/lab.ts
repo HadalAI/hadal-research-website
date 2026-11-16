@@ -35,6 +35,22 @@ export const PROGRAMS: Program[] = [
         label: 'Changing One Word — paper (v6, Oct 2026)',
         href: '/blog/changing-one-word',
       },
+    ],
+  },
+  {
+    id: '02',
+    slug: 'measurement',
+    title: 'Measurement',
+    status: 'PUBLISHED',
+    lead: 'What would make a small-model result worth believing?',
+    summary:
+      'A tool-use score is reported as accuracy over function names and arguments, and those arguments are usually short identifiers. When the argument is a document instead, what gets measured stops being the model: rendering 1,762 real files through the XML tool-call framing and parsing them back with five implementations moves the reported number between 99.8% and 0.9%, with no model in the loop. The same question applies to every vocabulary we use to report an effect.',
+    approach: [
+      'Grade by executing the call and inspecting the result, not by matching its text.',
+      'State the parser, the framing rule and the decoding settings next to every number, because they are part of the measurement.',
+      'Ship the predictions and the harness, so a reader can recompute the score instead of trusting it.',
+    ],
+    outputs: [
       {
         label: 'Framing Newlines — paper (Nov 2026)',
         href: '/blog/framing-newlines',
