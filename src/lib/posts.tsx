@@ -132,6 +132,27 @@ export const POSTS: Post[] = [
         />
 
         <p className={P}>
+        <h2 className={H2}>Is the drift real?</h2>
+        <p className={P}>
+          Both the earlier work and our matrix assume the file has moved, so we measured how often that
+          class of change actually occurs. Across 18,874 commits in six mature Python repositories
+          (click, fastapi, flask, httpx, requests, rich), we diffed every changed file twice — once
+          normally, once with whitespace ignored. A change that vanishes from the second diff is
+          whitespace-class: reindentation, a trailing-whitespace strip, a line-ending conversion.
+        </p>
+        <p className={P}>
+          <span className="text-ink">3.42% of file changes are that class</span> — roughly one in 29 —
+          and 1.20% of commits are nothing else. Every repository is above 2%. Drift is routine in mature
+          code, which is why a fail-open matcher will meet it.
+        </p>
+        <p className={NOTE}>
+          That is a repository-life rate, not a per-session hazard: it says the change class is ordinary,
+          not that it lands between an agent's read and its write. Instrumenting live sessions is the next
+          experiment, and the one that would turn this into a risk estimate.
+        </p>
+
+        <h2 className={H2}>Why the split matters</h2>
+        <p className={P}>
           The split is not about accuracy, it is about whether the format can fail. Exact matchers refuse a
           drifted edit — the agent sees an error and re-reads. Fuzzy matching and line ranges applied the
           edit in over 96% of drifted cases; neither ever refused.
