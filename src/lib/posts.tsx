@@ -70,6 +70,95 @@ function Table({
 }
 
 export const POSTS: Post[] = [
+
+{
+    slug: 'edit-protocols',
+    title: 'Fail-open edits: how agent file-editing formats corrupt code without telling anyone',
+    kind: 'PAPER',
+    date: '2026-11-16',
+    displayDate: '16 November 2026',
+    authors: 'Kyssta',
+    readingTime: '8 min',
+    summary:
+      'Agent harnesses send file edits as whole files, SEARCH/REPLACE blocks, diffs, apply_patch envelopes or line ranges. When the file has drifted — a formatter, a checkout, an editor — exact matchers refuse and fuzzy or line-number formats apply the edit to the wrong place. We measured it on 696 real files: two formats never fail safe, and up to 6.2% of their drifted Python edits change the program.',
+    tags: ['tool use', 'evaluation', 'editing', 'agents'],
+    links: [
+      { label: 'Paper (PDF)', href: '/papers/edit-protocols.pdf' },
+      { label: 'Code & records', href: 'https://github.com/HadalAI/hadal1/tree/main/experiments/conformance', external: true },
+    ],
+    body: (
+      <>
+        <p className={LEAD}>
+          An edit format decides what happens when the file is not the one the model read. Two of the
+          common formats answer that by editing anyway.
+        </p>
+
+        <p className={P}>
+          A harness reads a file, the model proposes a change, the harness writes it. Between the read and
+          the write the tree can move without the model knowing: a pre-commit hook reformats the file, a
+          checkout converts line endings, an editor strips trailing whitespace. The SEARCH block no longer
+          matches byte-for-byte, and what happens next is a policy the format has already chosen.
+        </p>
+
+        <h2 className={H2}>What we measured</h2>
+        <ul className={UL}>
+          <li><span className="text-ink">696 real source files</span> — Python, Markdown, JSON, shell and HTML from installed distributions, this lab's repositories and its skills tree.</li>
+          <li><span className="text-ink">2,159 edits</span> whose target region a perturbation actually moved, across seven drifts including a real <code>black</code> reformat.</li>
+          <li><span className="text-ink">Seven formats</span>: whole file, exact SEARCH/REPLACE, whitespace-insensitive SEARCH/REPLACE (ported from aider at a pinned commit), fuzzy SEARCH/REPLACE, unified diff, <code>apply_patch</code>, and a line-range patch.</li>
+          <li><span className="text-ink">Three verdicts</span>: exact, applied-but-different, or refused. For Python we also compare the parsed syntax tree, because indentation is syntax.</li>
+        </ul>
+
+        <h2 className={H2}>Results</h2>
+        <Table
+          head={['format', 'exact', 'silent', 'program changed', 'refused']}
+          rows={[
+            ['whole file', '100%', '0%', '0%', '0%'],
+            ['SEARCH/REPLACE, whitespace-insensitive', '34.0%', '0.3%', '0%', '65.6%'],
+            ['SEARCH/REPLACE, fuzzy', '1.9%', '96.4%', '1.3%', '0.4%'],
+            ['unified diff', '1.2%', '0.1%', '0%', '98.7%'],
+            ['apply_patch', '1.9%', '0.2%', '0%', '98.0%'],
+            ['line-range patch', '1.2%', '96.9%', '1.9%', '0%'],
+            ['SEARCH/REPLACE, exact', '1.9%', '0.2%', '0%', '97.9%'],
+          ]}
+          caption="Table 1. Verdicts on 2,159 drifted edits. The program-change column is defined only for Python, so it is diluted by the non-Python share of the corpus; on Python edits alone, fuzzy matching changes the program in 4.5% of drifted cases and line ranges in 6.2%."
+        />
+
+        <p className={P}>
+          The split is not about accuracy, it is about whether the format can fail. Exact matchers refuse a
+          drifted edit — the agent sees an error and re-reads. Fuzzy matching and line ranges applied the
+          edit in over 96% of drifted cases; neither ever refused.
+        </p>
+
+        <h2 className={H2}>Why it survives in practice</h2>
+        <p className={P}>
+          The per-edit failure rate looks small, which is exactly why nobody has had to fix it: most edits
+          are short, indentation matters only near block boundaries, and a wrong line usually surfaces in
+          the next test run. The number that matters is per session. An agent making a hundred edits in a
+          reformatted tree expects a handful of silent changes, each reported as success.
+        </p>
+        <p className={P}>
+          One corroboration: in current aider, the fuzzy fallback in <code>replace_most_similar_chunk</code>
+          is unreachable — the function returns before it. Practitioners hit this and turned the format off,
+          without publishing what they saw.
+        </p>
+
+        <h2 className={H2}>What a harness should do</h2>
+        <ul className={UL}>
+          <li>Match exactly, and treat zero or two matches as a failed turn.</li>
+          <li>Never address lines: a line range is a bet that nothing above it changed.</li>
+          <li>If you approximate, return the span you matched and the similarity you accepted, so the model can see it edited lines it never quoted.</li>
+          <li>Re-read after any formatting pass rather than trusting the transcript's copy.</li>
+        </ul>
+
+        <p className={NOTE}>
+          Preprint, not peer reviewed. The drift here is synthetic — seven plausible perturbations, not a
+          sample of real sessions — and the fuzzy matcher is a representative implementation rather than one
+          specific shipped build. Both are stated in the paper, and a field study of how often working trees
+          move mid-session is the obvious next step.
+        </p>
+      </>
+    ),
+  },
 {
     slug: 'framing-newlines',
     title: 'Framing newlines: how tool-call parsers rewrite the files agents write',

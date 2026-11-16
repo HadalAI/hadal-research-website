@@ -55,6 +55,10 @@ export const PROGRAMS: Program[] = [
         label: 'Framing Newlines — paper (Nov 2026)',
         href: '/blog/framing-newlines',
       },
+      {
+        label: 'Fail-open edits — paper (Nov 2026)',
+        href: '/blog/edit-protocols',
+      },
     ],
   },
 ];
@@ -100,6 +104,25 @@ export type Publication = {
 };
 
 export const PUBLICATIONS: Publication[] = [
+  {
+    slug: 'edit-protocols',
+    title: 'Fail-open edits: how agent file-editing formats corrupt code without telling anyone',
+    authors: 'Kyssta',
+    date: '2026-11-16',
+    displayDate: '16 NOVEMBER 2026',
+    version: 'v1',
+    venue: 'PREPRINT \u00b7 NOT PEER REVIEWED',
+    status: 'PUBLISHED',
+    abstract:
+      'Agent harnesses express a file edit as a whole file, a SEARCH/REPLACE block, a unified diff, an apply_patch envelope or a line range. We measure whether these formats are equivalent when the file the applier reads has drifted from the file the model wrote against. Across 696 real source files and 2,159 edits whose target region the drift moved, exact matchers refused 97.9-100% of edits and never wrote a wrong file; fuzzy SEARCH/REPLACE and line-range patches applied the edit in over 96% of drifted cases and refused none, changing the parsed program in 4.5% and 6.2% of drifted Python edits respectively. Whitespace-insensitive matching recovered 34.0% of drifted edits exactly and refused the rest with no semantic corruption. Whole-file writes are immune and cost 100% of the file in tokens per edit, against about 9% for a SEARCH/REPLACE block.',
+    bibtex:
+      '@misc{kyssta2026failopenedits, title = {Fail-open edits: how agent file-editing formats corrupt code without telling anyone}, author = {Kyssta}, year = {2026}, note = {Preprint. Not peer reviewed.}, url = {https://hadal.run/blog/edit-protocols}}',
+    links: [
+      { label: 'Read on the blog', href: '/blog/edit-protocols' },
+      { label: 'Paper (PDF)', href: '/papers/edit-protocols.pdf' },
+      { label: 'Code & records', href: 'https://github.com/HadalAI/hadal1/tree/main/experiments/conformance', external: true },
+    ],
+  },
   {
     slug: 'framing-newlines',
     title: 'Framing Newlines: how tool-call parsers rewrite the files agents write',
