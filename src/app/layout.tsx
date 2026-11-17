@@ -1,105 +1,118 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Doodle, type DoodleName } from '@/components/doodles';
-import { DoodleRow, HandRule } from '@/components/sketch';
-import './fonts.css';
+import Navigation from '@/components/navigation';
+import PointerLayer from '@/components/pointer-layer';
+import RunningHead from '@/components/running-head';
+import Sounding from '@/components/sounding';
+import { IBM_Plex_Sans, IBM_Plex_Serif, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: { default: 'Hadal Research', template: '%s — Hadal Research' },
-  description:
-    'Hadal Research is a small lab studying hybrid language models and the measurement methods that decide whether a change is real.',
-};
+const sans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-plex-sans',
+});
 
-const NAV: { href: string; label: string; icon: DoodleName }[] = [
-  { href: '/research', label: 'Research', icon: 'compass' },
-  { href: '/publications', label: 'Publications', icon: 'book' },
-  { href: '/blog', label: 'Notes', icon: 'pencil' },
-  { href: '/models', label: 'Models', icon: 'bulb' },
-  { href: '/compute', label: 'Compute', icon: 'flask' },
-];
+const serif = IBM_Plex_Serif({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  variable: '--font-plex-serif',
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  display: 'swap',
+  variable: '--font-plex-mono',
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Hadal Research',
+    template: '%s — Hadal Research',
+  },
+  description:
+    'Hadal Research is a small lab studying hybrid language models — how attention, recurrence and retrieval are combined — and the measurement methods that decide whether a change is real.',
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen">
-        {/* top margin of the notebook */}
-        <div className="mx-auto flex max-w-page flex-wrap items-center justify-between gap-2 px-5 pt-5 md:px-10">
-          <p className="mono-label flex items-center gap-2">
-            <Doodle name="asterisk" className="h-5 w-5 text-marker" />
-            Hadal Research <span className="text-pencil">/</span> keeping notes
-          </p>
-          <p className="note flex items-center gap-2 text-pencil">
-            intelligence, built together
-            <Doodle name="smile" className="h-6 w-6 text-marker" />
-          </p>
+    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
+      <body className="min-h-screen bg-paper font-serif text-ink antialiased">
+        <PointerLayer />
+        <Sounding />
+        <div className="border-b border-rule">
+          <div className="mx-auto flex max-w-page items-baseline justify-between gap-8 px-6 py-3 md:px-10">
+            <p id="imprint-mark" className="mono-label">
+              Hadal Research <span className="px-2 text-rule">/</span> Technical report series
+            </p>
+            <RunningHead />
+          </div>
         </div>
 
-        <header className="mx-auto max-w-page px-5 pt-4 md:px-10">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <Link href="/" className="group flex items-end gap-2" aria-label="Hadal Research, home">
-              <Doodle name="sun" className="h-10 w-10 text-marker transition-transform group-hover:rotate-12" />
-              <span className="font-marker text-[46px] leading-[0.85]">
-                hadal<span className="text-marker">.</span>
-              </span>
-            </Link>
-
-            <nav className="flex flex-wrap items-center gap-x-5 gap-y-1 pb-1">
-              {NAV.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="group inline-flex items-center gap-1.5 py-1 text-[19px] transition-colors hover:text-marker"
-                >
-                  <Doodle name={l.icon} className="h-[18px] w-[18px] text-marker" strokeWidth={3} />
-                  <span className="link">{l.label}</span>
-                </Link>
-              ))}
-              <a
-                href="https://github.com/HadalAI"
-                target="_blank"
-                rel="noreferrer"
-                className="group inline-flex items-center gap-1 text-[19px] hover:text-marker"
-              >
-                <span className="link">GitHub</span>
-                <Doodle name="plane" className="h-4 w-4 text-marker" />
-              </a>
-            </nav>
-          </div>
-          <DoodleRow count={7} className="justify-start !pb-0" />
-        </header>
+        <Navigation />
 
         {children}
 
-        <footer className="mx-auto max-w-page px-5 pb-10 md:px-10">
-          <HandRule />
-          <DoodleRow count={16} />
-          <div className="mt-6 grid gap-8 md:grid-cols-3">
-            <div>
-              <p className="font-marker text-[30px]">hadal<span className="text-marker">.</span></p>
-              <p className="mt-2 max-w-[34ch] text-[18px] leading-snug">
-                A small lab working on hybrid language models and on measurements that can be checked.
-              </p>
+        <footer className="mt-24 border-t border-rule">
+          <div className="mx-auto max-w-page px-6 py-14 md:px-10">
+            <div className="grid gap-10 md:grid-cols-[2fr_1fr_1fr]">
+              <div>
+                <p className="font-serif text-2xl leading-tight">
+                  Hadal Research<span className="text-accent">.</span>
+                </p>
+                <p className="mt-3 max-w-[38ch] font-serif text-[15px] leading-relaxed text-muted">
+                  A small lab working on hybrid language models and on the measurement methods
+                  that decide whether a change is real.
+                </p>
+              </div>
+              <div>
+                <p className="mono-label">Pages</p>
+                <ul className="mt-4 space-y-1.5 font-serif text-[15px]">
+                  {[
+                    ['/research', 'Research'],
+                    ['/publications', 'Publications'],
+                    ['/blog', 'Notes'],
+                    ['/models', 'Models'],
+                    ['/compute', 'Compute'],
+                  ].map(([href, label]) => (
+                    <li key={href}>
+                      <Link href={href} className="link">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mono-label">Colophon</p>
+                <p className="mt-4 font-serif text-[15px] leading-relaxed text-muted">
+                  Set in IBM Plex Sans, Serif and Mono. Site source Apache-2.0; papers CC BY 4.0.
+                </p>
+                <p className="mono-label mt-5">
+                  <a
+                    href="https://github.com/HadalAI"
+                    className="link"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    GitHub ↗
+                  </a>
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="label">pages</p>
-              <ul className="mt-2 space-y-1">
-                {NAV.map((l) => (
-                  <li key={l.href} className="flex items-center gap-2">
-                    <Doodle name={l.icon} className="h-4 w-4 text-marker" />
-                    <Link href={l.href} className="link text-[18px]">{l.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="label">colophon</p>
-              <p className="mt-2 text-[18px] leading-snug">
-                Drawn in Permanent Marker, Patrick Hand and Caveat. Site Apache-2.0; papers CC BY 4.0.
-              </p>
-              <p className="mt-2 flex items-center gap-2 text-[18px]">
-                <Doodle name="heart" className="h-5 w-5 text-marker" />
-                © {new Date().getFullYear()} Hadal Research
+            <div className="mt-12 flex flex-col gap-2 border-t border-rule pt-6 md:flex-row md:items-center md:justify-between">
+              <p className="mono-label">© {new Date().getFullYear()} Hadal Research</p>
+              <p className="mono-label flex gap-5">
+                <Link href="/privacy" className="link">
+                  Privacy
+                </Link>
+                <Link href="/terms" className="link">
+                  Terms
+                </Link>
               </p>
             </div>
           </div>

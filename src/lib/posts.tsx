@@ -16,13 +16,14 @@ export type Post = {
   links: { label: string; href: string; external?: boolean }[];
 };
 
-const P = 'mt-5 text-[19.5px] leading-[1.55]';
-const LEAD = 'text-[21px] leading-[1.45] text-ink';
-const H2 = 'mt-11 font-marker text-[23px] leading-tight text-ink';
-const H3 = 'mt-7 font-marker text-[19px] leading-snug';
-const UL = 'doodle-list mt-4 space-y-2.5 text-[19px] leading-[1.55]';
-const CODE = 'code-doodle';
-const NOTE = 'scrawl mt-8 pl-4 text-[19px] leading-snug';
+const P = 'mt-5 font-serif text-[17px] leading-[1.68] text-ink/85';
+const LEAD = 'font-serif text-[20px] leading-[1.55] text-ink';
+const H2 = 'mt-12 border-t border-rule pt-5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted';
+const H3 = 'mt-8 font-serif text-[21px] italic';
+const UL = 'mt-5 list-disc space-y-2.5 pl-6 font-serif text-[17px] leading-[1.65] text-ink/85';
+const CODE =
+  'mt-6 overflow-x-auto border-l-2 border-accent/50 bg-paper-2 px-5 py-4 font-mono text-[12px] leading-[1.8] text-ink';
+const NOTE = 'mt-8 border-l-2 border-accent pl-5 font-serif text-[15px] italic leading-relaxed text-muted';
 
 function Table({
   head,
@@ -35,12 +36,12 @@ function Table({
 }) {
   return (
     <figure className={`mt-8 ${head.length > 3 ? 'lg:-mx-16 xl:-mx-24' : ''}`}>
-      <div className="doodle-table-wrap">
+      <div className="overflow-x-auto border-t border-ink">
         <table
           className={`paper-table text-left ${head.length > 3 ? 'min-w-[660px]' : 'min-w-[300px]'}`}
         >
           <thead>
-            <tr>
+            <tr className="border-b hairline">
               {head.map((h) => (
                 <th
                   key={h}
@@ -64,148 +65,12 @@ function Table({
           </tbody>
         </table>
       </div>
-      <figcaption className="mt-2 text-[16px] leading-snug text-pencil">{caption}</figcaption>
+      <figcaption className="mt-3 font-serif text-[13.5px] leading-relaxed text-muted">{caption}</figcaption>
     </figure>
   );
 }
 
 export const POSTS: Post[] = [
-
-{
-    slug: 'edit-protocols',
-    title: 'The blind window: how stale is the file an agent edits',
-    kind: 'PAPER',
-    date: '2026-11-16',
-    displayDate: '16 November 2026',
-    authors: 'Kyssta',
-    readingTime: '8 min',
-    summary:
-      'Half of the 8,399 file writes in our agent logs went to files that existed but had never been opened in that session; where a read did come first, the median gap was 3.5 minutes and 14 tool calls, with a tail measured in hours. That is the window in which a formatter or a checkout can move the file under an edit. We pair it with a re-measurement of edit formats under drift, and with base rates: 3.42% of file changes in six mature repositories are whitespace-class.',
-    tags: ['tool use', 'evaluation', 'editing', 'agents'],
-    links: [
-      { label: 'Paper (PDF)', href: '/papers/edit-protocols.pdf' },
-      { label: 'Code & records', href: 'https://github.com/HadalAI/hadal1/tree/main/experiments/conformance', external: true },
-    ],
-    body: (
-      <>
-        <p className={LEAD}>
-          An edit format decides what happens when the file is not the one the model read. Two of the
-          common formats answer that by editing anyway — which earlier work already showed, and which we
-          re-measured to see whether a formatter changes the picture.
-        </p>
-
-        <p className={NOTE}>
-          Prior work: Althoubi, <i>Look Before You Leap</i> (arXiv:2609.11957) establishes the
-          content-anchored versus location-anchored split on 640 edits; Wan et al. (preprints.org,
-          Oct 2026) compare line ranges with search/replace across six models. This note is a replication
-          and extension, not a new claim.
-        </p>
-
-        <p className={P}>
-          A harness reads a file, the model proposes a change, the harness writes it. Between the read and
-          the write the tree can move without the model knowing: a pre-commit hook reformats the file, a
-          checkout converts line endings, an editor strips trailing whitespace. The SEARCH block no longer
-          matches byte-for-byte, and what happens next is a policy the format has already chosen.
-        </p>
-
-        <h2 className={H2}>What we measured</h2>
-        <ul className={UL}>
-          <li><span className="text-ink">696 real source files</span> — Python, Markdown, JSON, shell and HTML from installed distributions, this lab's repositories and its skills tree.</li>
-          <li><span className="text-ink">2,159 edits</span> whose target region a perturbation actually moved, across seven drifts including a real <code>black</code> reformat.</li>
-          <li><span className="text-ink">Seven formats</span>: whole file, exact SEARCH/REPLACE, whitespace-insensitive SEARCH/REPLACE (ported from aider at a pinned commit), fuzzy SEARCH/REPLACE, unified diff, <code>apply_patch</code>, and a line-range patch.</li>
-          <li><span className="text-ink">Three verdicts</span>: exact, applied-but-different, or refused. For Python we also compare the parsed syntax tree, because indentation is syntax.</li>
-        </ul>
-
-        <h2 className={H2}>Results</h2>
-        <Table
-          head={['format', 'exact', 'silent', 'program changed', 'refused']}
-          rows={[
-            ['whole file', '100%', '0%', '0%', '0%'],
-            ['SEARCH/REPLACE, whitespace-insensitive', '34.0%', '0.3%', '0%', '65.6%'],
-            ['SEARCH/REPLACE, fuzzy', '1.9%', '96.4%', '1.3%', '0.4%'],
-            ['unified diff', '1.2%', '0.1%', '0%', '98.7%'],
-            ['apply_patch', '1.9%', '0.2%', '0%', '98.0%'],
-            ['line-range patch', '1.2%', '96.9%', '1.9%', '0%'],
-            ['SEARCH/REPLACE, exact', '1.9%', '0.2%', '0%', '97.9%'],
-          ]}
-          caption="Table 1. Verdicts on 2,159 drifted edits. The program-change column is defined only for Python, so it is diluted by the non-Python share of the corpus; on Python edits alone, fuzzy matching changes the program in 4.5% of drifted cases and line ranges in 6.2%."
-        />
-
-        <h2 className={H2}>How wide is the window?</h2>
-        <p className={P}>
-          A format only matters if the agent is editing against a copy that has had time to change. We
-          measured that from our own session stores: every file-writing tool call was matched to the most
-          recent read of the same path in the same conversation.
-        </p>
-        <p className={P}>
-          Of <span className="text-ink">8,399 writes</span>, <span className="text-ink">50.6%</span> went
-          to files that exist on disk but had never been read in that session. Where a read did come first
-          (2,936 cases), the median separation was <span className="text-ink">208 seconds and 14 tool
-          calls</span>; the 75th percentile was 59 minutes, the 90th 3.4 hours. A third of matched edits
-          came more than fifteen minutes after the last read, and a quarter more than an hour after.
-        </p>
-        <p className={NOTE}>
-          Half of all edits are made blind by this count, and the window is minutes-to-hours, not seconds.
-          The logs are this lab's own traffic — five session stores, one harness — so treat the shape as a
-          pilot, not a population estimate.
-        </p>
-
-        <h2 className={H2}>Is the drift real?</h2>
-        <p className={P}>
-          Both the earlier work and our matrix assume the file has moved, so we measured how often that
-          class of change actually occurs. Across 18,874 commits in six mature Python repositories
-          (click, fastapi, flask, httpx, requests, rich), we diffed every changed file twice — once
-          normally, once with whitespace ignored. A change that vanishes from the second diff is
-          whitespace-class: reindentation, a trailing-whitespace strip, a line-ending conversion.
-        </p>
-        <p className={P}>
-          <span className="text-ink">3.42% of file changes are that class</span> — roughly one in 29 —
-          and 1.20% of commits are nothing else. Every repository is above 2%. Drift is routine in mature
-          code, which is why a fail-open matcher will meet it.
-        </p>
-        <p className={NOTE}>
-          That is a repository-life rate, not a per-session hazard: it says the change class is ordinary,
-          not that it lands between an agent's read and its write. Instrumenting live sessions is the next
-          experiment, and the one that would turn this into a risk estimate.
-        </p>
-
-        <h2 className={H2}>Why the split matters</h2>
-        <p className={P}>
-          The split is not about accuracy, it is about whether the format can fail. Exact matchers refuse a
-          drifted edit — the agent sees an error and re-reads. Fuzzy matching and line ranges applied the
-          edit in over 96% of drifted cases; neither ever refused.
-        </p>
-
-        <h2 className={H2}>Why it survives in practice</h2>
-        <p className={P}>
-          The per-edit failure rate looks small, which is exactly why nobody has had to fix it: most edits
-          are short, indentation matters only near block boundaries, and a wrong line usually surfaces in
-          the next test run. The number that matters is per session. An agent making a hundred edits in a
-          reformatted tree expects a handful of silent changes, each reported as success.
-        </p>
-        <p className={P}>
-          One corroboration: in current aider, the fuzzy fallback in <code>replace_most_similar_chunk</code>
-          is unreachable — the function returns before it. Practitioners hit this and turned the format off,
-          without publishing what they saw.
-        </p>
-
-        <h2 className={H2}>What a harness should do</h2>
-        <ul className={UL}>
-          <li>Match exactly, and treat zero or two matches as a failed turn.</li>
-          <li>Never address lines: a line range is a bet that nothing above it changed.</li>
-          <li>If you approximate, return the span you matched and the similarity you accepted, so the model can see it edited lines it never quoted.</li>
-          <li>Re-read after any formatting pass rather than trusting the transcript's copy.</li>
-        </ul>
-
-        <p className={NOTE}>
-          Preprint, not peer reviewed. The drift here is synthetic — seven plausible perturbations, not a
-          sample of real sessions — and the fuzzy matcher is a representative implementation rather than one
-          specific shipped build. Both are stated in the paper, and a field study of how often working trees
-          move mid-session is the obvious next step.
-        </p>
-      </>
-    ),
-  },
 {
     slug: 'framing-newlines',
     title: 'Framing newlines: how tool-call parsers rewrite the files agents write',

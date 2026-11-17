@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import Doodle from '@/components/doodles';
-import { Circled, HandRule, DoodleRow } from '@/components/sketch';
 import { POSTS, postBySlug } from '@/lib/posts';
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() { return POSTS.map((p) => ({ slug: p.slug })); }
+export function generateStaticParams() {
+  return POSTS.map((p) => ({ slug: p.slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -22,53 +22,67 @@ export default async function BlogPost({ params }: Props) {
   if (!post) notFound();
 
   return (
-    <main className="mx-auto max-w-page px-5 md:px-10">
-      <div className="mx-auto max-w-measure pt-8">
-        <p className="flex items-center gap-2 text-[18px]">
-          <Doodle name="arrow" className="h-5 w-5 rotate-180 text-marker" />
-          <Link href="/blog" className="link">all notes</Link>
-        </p>
-
-        <div className="mt-6 flex flex-wrap items-center gap-4">
-          <Circled className="note text-[19px] font-semibold uppercase text-marker">{post.kind}</Circled>
-          <p className="note">{post.displayDate} · {post.readingTime}</p>
-        </div>
-
-        <h1 className="mt-5 text-balance text-[clamp(32px,4.4vw,46px)] leading-[1.1]">{post.title}</h1>
-
-        <p className="mt-3 flex items-center gap-2 text-[19px]">
-          <Doodle name="pencil" className="h-5 w-5 text-marker" /> {post.authors}
-        </p>
-        <p className="note mt-3 text-pencil">{post.tags.join(' · ')}</p>
-
-        <div className="mt-5 flex flex-wrap gap-4">
-          {post.links.slice(0, 2).map((l) => (
-            <a key={l.href} href={l.href} target={l.external ? '_blank' : undefined} rel={l.external ? 'noreferrer' : undefined} className="btn">
-              {l.label}<Doodle name={l.external ? 'plane' : 'arrow'} className="h-4 w-4" />
-            </a>
-          ))}
-        </div>
-
-        <DoodleRow count={14} />
+    <main className="mx-auto max-w-page px-6 md:px-10">
+      <div className="mx-auto max-w-measure border-b border-rule py-4">
+        <Link href="/blog" className="mono-label link">
+          ← Notes
+        </Link>
       </div>
 
-      <article className="mx-auto max-w-measure pb-14">
-        <div className="marginalia">{post.body}</div>
-        <HandRule />
+      <article className="mx-auto max-w-measure py-14">
+        <p className="mono-label">
+          {post.kind} <span className="px-2 text-rule">/</span> {post.displayDate}{' '}
+          <span className="px-2 text-rule">/</span> {post.readingTime}
+        </p>
+
+        <h1 className="mt-6 text-balance font-serif text-[clamp(32px,4.6vw,44px)] font-normal leading-[1.08] tracking-[-0.02em]">
+          {post.title}
+        </h1>
+
+        <p className="mt-5 font-serif text-[16px] text-ink">{post.authors}</p>
+
+        <p className="mono-label mt-5">{post.tags.join(' / ')}</p>
 
         {post.links.length > 0 && (
-          <section>
-            <p className="label flex items-center gap-2"><Doodle name="bookmark" className="h-5 w-5 text-marker" /> sources</p>
-            <ul className="doodle-list mt-2 space-y-2 text-[18px]">
+          <p className="mt-7 flex flex-wrap gap-x-7 gap-y-2">
+            {post.links.slice(0, 2).map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                target={l.external ? '_blank' : undefined}
+                rel={l.external ? 'noreferrer' : undefined}
+                className="mono-label link"
+              >
+                {l.label} {l.external ? '↗' : '→'}
+              </a>
+            ))}
+          </p>
+        )}
+
+        <div className="marginalia mt-10 border-t border-ink pt-8">{post.body}</div>
+
+        {post.links.length > 0 && (
+          <section className="mt-14 border-t border-rule pt-6">
+            <p className="mono-label">Source</p>
+            <ul className="mt-3 space-y-2">
               {post.links.map((l) => (
-                <li key={l.href}>{l.external
-                  ? <a href={l.href} target="_blank" rel="noreferrer" className="link">{l.label}</a>
-                  : <Link href={l.href} className="link">{l.label}</Link>}</li>
+                <li key={l.href} className="font-serif text-[16px]">
+                  {l.external ? (
+                    <a href={l.href} target="_blank" rel="noreferrer" className="link">
+                      {l.label} ↗
+                    </a>
+                  ) : (
+                    <Link href={l.href} className="link">
+                      {l.label} →
+                    </Link>
+                  )}
+                </li>
               ))}
             </ul>
           </section>
         )}
-        <p className="mt-8 text-[17px] text-pencil">
+
+        <p className="mt-12 border-t border-rule pt-6 font-serif text-[14px] leading-relaxed text-muted">
           {post.kind === 'PAPER'
             ? 'Unpublished manuscript. Not peer reviewed; no priority claim is made.'
             : 'Lab note. Describes the conditions a result was produced under, not a new claim.'}
