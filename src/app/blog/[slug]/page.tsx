@@ -5,9 +5,7 @@ import { POSTS, postBySlug } from '@/lib/posts';
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return POSTS.map((p) => ({ slug: p.slug }));
-}
+export function generateStaticParams() { return POSTS.map((p) => ({ slug: p.slug })); }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -22,67 +20,43 @@ export default async function BlogPost({ params }: Props) {
   if (!post) notFound();
 
   return (
-    <main className="mx-auto max-w-page px-6 md:px-10">
-      <div className="mx-auto max-w-measure border-b border-rule py-4">
-        <Link href="/blog" className="mono-label link">
-          ← Notes
-        </Link>
-      </div>
+    <main className="shell pb-4">
+      <p className="meta pt-10 mb-8"><Link href="/blog">← Notes</Link></p>
 
-      <article className="mx-auto max-w-measure py-14">
-        <p className="mono-label">
-          {post.kind} <span className="px-2 text-rule">/</span> {post.displayDate}{' '}
-          <span className="px-2 text-rule">/</span> {post.readingTime}
-        </p>
-
-        <h1 className="mt-6 text-balance font-serif text-[clamp(32px,4.6vw,44px)] font-normal leading-[1.08] tracking-[-0.02em]">
-          {post.title}
-        </h1>
-
-        <p className="mt-5 font-serif text-[16px] text-ink">{post.authors}</p>
-
-        <p className="mono-label mt-5">{post.tags.join(' / ')}</p>
+      <article>
+        <p className="entry-meta">{post.kind} · {post.displayDate} · {post.readingTime}</p>
+        <h1 className="m-0 text-[clamp(1.7rem,3.6vw,2.15rem)] leading-[1.22]">{post.title}</h1>
+        <p className="meta mt-4 mb-2">{post.authors}</p>
+        <p className="label mb-8">{post.tags.join(' · ')}</p>
 
         {post.links.length > 0 && (
-          <p className="mt-7 flex flex-wrap gap-x-7 gap-y-2">
+          <p className="meta mb-10 flex flex-wrap gap-x-5 gap-y-2">
             {post.links.slice(0, 2).map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                target={l.external ? '_blank' : undefined}
-                rel={l.external ? 'noreferrer' : undefined}
-                className="mono-label link"
-              >
-                {l.label} {l.external ? '↗' : '→'}
+              <a key={l.href} href={l.href} target={l.external ? '_blank' : undefined} rel={l.external ? 'noreferrer' : undefined}>
+                {l.label}
               </a>
             ))}
           </p>
         )}
 
-        <div className="marginalia mt-10 border-t border-ink pt-8">{post.body}</div>
+        <div className="prose marginalia">{post.body}</div>
 
         {post.links.length > 0 && (
-          <section className="mt-14 border-t border-rule pt-6">
-            <p className="mono-label">Source</p>
-            <ul className="mt-3 space-y-2">
+          <section className="mt-14">
+            <h2 className="section-title">Sources</h2>
+            <ul className="muted mb-0 pl-5">
               {post.links.map((l) => (
-                <li key={l.href} className="font-serif text-[16px]">
-                  {l.external ? (
-                    <a href={l.href} target="_blank" rel="noreferrer" className="link">
-                      {l.label} ↗
-                    </a>
-                  ) : (
-                    <Link href={l.href} className="link">
-                      {l.label} →
-                    </Link>
-                  )}
+                <li key={l.href} className="mb-2">
+                  {l.external
+                    ? <a href={l.href} target="_blank" rel="noreferrer">{l.label}</a>
+                    : <Link href={l.href}>{l.label}</Link>}
                 </li>
               ))}
             </ul>
           </section>
         )}
 
-        <p className="mt-12 border-t border-rule pt-6 font-serif text-[14px] leading-relaxed text-muted">
+        <p className="meta mt-12 mb-0">
           {post.kind === 'PAPER'
             ? 'Unpublished manuscript. Not peer reviewed; no priority claim is made.'
             : 'Lab note. Describes the conditions a result was produced under, not a new claim.'}

@@ -18,12 +18,12 @@ export type Post = {
 
 const P = 'mt-5 font-serif text-[17px] leading-[1.68] text-ink/85';
 const LEAD = 'font-serif text-[20px] leading-[1.55] text-ink';
-const H2 = 'mt-12 border-t border-rule pt-5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted';
-const H3 = 'mt-8 font-serif text-[21px] italic';
+const H2 = 'mt-12';
+const H3 = 'mt-8 font-serif text-[18px] font-semibold';
 const UL = 'mt-5 list-disc space-y-2.5 pl-6 font-serif text-[17px] leading-[1.65] text-ink/85';
 const CODE =
-  'mt-6 overflow-x-auto border-l-2 border-accent/50 bg-paper-2 px-5 py-4 font-mono text-[12px] leading-[1.8] text-ink';
-const NOTE = 'mt-8 border-l-2 border-accent pl-5 font-serif text-[15px] italic leading-relaxed text-muted';
+  'mt-6 overflow-x-auto rounded-[3px] bg-paper-2 px-5 py-4 font-mono text-[12.5px] leading-[1.75] text-ink';
+const NOTE = 'mt-8 border-l-2 border-rule pl-4 font-serif text-[16px] leading-[1.7] text-muted';
 
 function Table({
   head,
@@ -36,12 +36,12 @@ function Table({
 }) {
   return (
     <figure className={`mt-8 ${head.length > 3 ? 'lg:-mx-16 xl:-mx-24' : ''}`}>
-      <div className="overflow-x-auto border-t border-ink">
+      <div className="doodle-table-wrap">
         <table
           className={`paper-table text-left ${head.length > 3 ? 'min-w-[660px]' : 'min-w-[300px]'}`}
         >
           <thead>
-            <tr className="border-b hairline">
+            <tr>
               {head.map((h) => (
                 <th
                   key={h}

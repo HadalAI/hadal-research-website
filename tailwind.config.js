@@ -4,42 +4,28 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        paper: '#fffdf7',
-        'paper-2': '#f8f3e2',
-        ink: '#12100c',
-        pencil: '#6b6353',
-        marker: '#cf3f22',
-        pen: '#26478c',
-        highlight: '#ffe680',
-        rule: '#12100c',
-        /* aliases kept so older post bodies keep their meaning after the restyle */
-        muted: '#6b6353',
-        accent: '#cf3f22',
+        paper: '#ffffff',
+        'paper-2': '#f3f3f2',
+        ink: '#282828',
+        muted: '#676767',
+        faint: '#969696',
+        rule: '#e8e8e6',
+        accent: '#0155bf',
+        pencil: '#676767',
+        marker: '#282828',
       },
       fontFamily: {
-        marker: ['Permanent Marker', 'Marker Felt', 'Comic Sans MS', 'cursive'],
-        hand: ['Patrick Hand', 'Segoe Print', 'Comic Sans MS', 'cursive'],
-        note: ['Caveat', 'Bradley Hand', 'Segoe Print', 'cursive'],
-        serif: ['Patrick Hand', 'Segoe Print', 'Comic Sans MS', 'cursive'],
-        sans: ['Patrick Hand', 'Segoe Print', 'Comic Sans MS', 'cursive'],
+        serif: ['"Iowan Old Style BT"', '"Iowan Old Style"', 'Charter', 'Georgia', 'serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Arial', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        display: ['"Chakra Petch"', 'Inter', 'sans-serif'],
       },
       maxWidth: {
-        page: '1080px',
-        measure: '62ch',
+        page: '900px',
+        measure: '660px',
       },
-      boxShadow: {
-        sketch: '3px 3px 0 0 #12100c',
-        'sketch-lg': '5px 5px 0 0 #12100c',
-        'sketch-sm': '2px 2px 0 0 #12100c',
-      },
-      keyframes: {
-        wobble: {
-          '0%,100%': { transform: 'rotate(-0.5deg)' },
-          '50%': { transform: 'rotate(0.5deg)' },
-        },
-      },
-      animation: {
-        wobble: 'wobble 3.2s ease-in-out infinite',
+      transitionTimingFunction: {
+        smooth: 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
     },
   },
