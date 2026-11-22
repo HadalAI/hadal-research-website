@@ -16,14 +16,14 @@ export type Post = {
   links: { label: string; href: string; external?: boolean }[];
 };
 
-const P = 'mt-5 font-serif text-[17px] leading-[1.68] text-ink/85';
-const LEAD = 'font-serif text-[20px] leading-[1.55] text-ink';
+const P = 'mt-5 text-[17.5px] leading-[1.72]';
+const LEAD = 'text-[20px] leading-[1.58] text-ink';
 const H2 = 'mt-12';
 const H3 = 'mt-8 font-serif text-[18px] font-semibold';
-const UL = 'mt-5 list-disc space-y-2.5 pl-6 font-serif text-[17px] leading-[1.65] text-ink/85';
+const UL = 'mt-5 list-disc space-y-2 pl-5 text-[17.5px] leading-[1.7]';
 const CODE =
-  'mt-6 overflow-x-auto rounded-[3px] bg-paper-2 px-5 py-4 font-mono text-[12.5px] leading-[1.75] text-ink';
-const NOTE = 'mt-8 border-l-2 border-rule pl-4 font-serif text-[16px] leading-[1.7] text-muted';
+  'mt-6 overflow-x-auto border-l-2 border-rule bg-[rgba(28,93,90,0.05)] px-5 py-4 font-mono text-[12.5px] leading-[1.75] text-ink';
+const NOTE = 'mt-8 border-l-2 border-rule pl-4 text-[16px] leading-[1.7] text-muted';
 
 function Table({
   head,

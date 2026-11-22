@@ -1,60 +1,79 @@
 import Link from 'next/link';
-import { PUBLICATIONS, PROGRAMS } from '@/lib/lab';
+import { PUBLICATIONS, PROGRAMS, MODELS } from '@/lib/lab';
+
+function excerpt(text: string, n: number) {
+  if (text.length <= n) return text;
+  const cut = text.slice(0, n);
+  const at = cut.lastIndexOf(' ');
+  return `${cut.slice(0, at > 0 ? at : n)}…`;
+}
 
 export default function HomePage() {
-  const recent = PUBLICATIONS[0];
+  const paper = PUBLICATIONS[0];
+  const model = MODELS[0];
+
   return (
-    <main className="shell pb-4">
-      <section className="pt-16 pb-14 text-center">
-        <h1 className="display hero-title rise m-0">Hadal<br />Research</h1>
-        <p className="meta rise rise-1 mt-7 mb-0">Intelligence, built together</p>
+    <main className="sheet">
+      {/* masthead: left-aligned, with the sounding reading hanging in the margin */}
+      <section className="row pt-20 pb-6">
+        <div className="hang">Est. 2026</div>
+        <div>
+          <p className="kicker rise m-0">An independent research lab</p>
+          <h1 className="hero rise rise-1 mt-3">
+            Research at depth,
+            <br />
+            on models we can measure.
+          </h1>
+          <p className="lede rise rise-2 mt-7 max-w-[34rem]">
+            We study hybrid language models — how attention, recurrence and retrieval are put
+            together — and the measurement methods that decide whether a change is real.
+          </p>
+        </div>
       </section>
 
-      <div className="stack">
-        <section className="rise rise-2">
-          <p className="lede">
-            Hadal Research is a small lab studying hybrid language models — how attention,
-            recurrence and retrieval are combined — and the measurement methods that decide
-            whether a change is real.
-          </p>
-          <p>
-            We publish the records with every result: raw predictions, the analysis code, and a
-            correction log when a verdict changes. Nothing here is announced before it has been
-            measured.
-          </p>
-        </section>
-
-        <section>
+      <section className="row mt-14">
+        <div className="hang">§ 01</div>
+        <div>
           <h2 className="section-title">Recent work</h2>
-          <div>
-            {PUBLICATIONS.map((p) => (
-              <article key={p.slug} className="entry">
-                <p className="entry-meta">{p.displayDate} · {p.version} · preprint</p>
-                <Link href={`/blog/${p.slug}`} className="entry-title">{p.title}</Link>
-                <p className="mt-2 mb-0 muted">{p.abstract.slice(0, 240)}…</p>
-              </article>
-            ))}
-          </div>
-          <p className="mt-8 mb-0">
-            <Link href="/publications">All publications</Link>
-          </p>
-        </section>
+          {PUBLICATIONS.map((p) => (
+            <article key={p.slug} className="entry">
+              <p className="meta m-0 mb-1">{p.displayDate} · {p.version} · preprint</p>
+              <Link href={`/blog/${p.slug}`} className="entry-title">{p.title}</Link>
+              <p className="muted mt-2 mb-0 max-w-[38rem]">{excerpt(p.abstract, 230)}</p>
+            </article>
+          ))}
+          <p className="mt-7 mb-0"><Link href="/publications">All publications</Link></p>
+        </div>
+      </section>
 
-        <section>
+      <section className="row mt-14">
+        <div className="hang">§ 02</div>
+        <div>
           <h2 className="section-title">Programmes</h2>
-          <div className="rule-list">
+          <div className="hair-list">
             {PROGRAMS.map((p) => (
               <div key={p.slug}>
-                <p className="mb-1">
-                  <Link href={`/research#${p.slug}`}>{p.title}</Link>
-                </p>
-                <p className="muted mb-0">{p.lead}</p>
+                <p className="m-0"><Link href={`/research#${p.slug}`}>{p.title}</Link></p>
+                <p className="muted m-0 mt-1">{p.lead}</p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section>
+      <section className="row mt-14">
+        <div className="hang">§ 03</div>
+        <div>
+          <h2 className="section-title">The model</h2>
+          <p className="m-0"><span className="mono-label">{model.status}</span></p>
+          <p className="m-0 mt-1"><Link href="/models" className="entry-title">{model.name}</Link></p>
+          <p className="muted mt-2 mb-0 max-w-[38rem]">{model.description}</p>
+        </div>
+      </section>
+
+      <section className="row mt-14">
+        <div className="hang">§ 04</div>
+        <div>
           <h2 className="section-title">How we work</h2>
           <p>
             One variable per experiment. Practical margins are written down before the run, and
@@ -62,10 +81,10 @@ export default function HomePage() {
             ones, and the analysis path runs on the Python standard library alone.
           </p>
           <p className="mb-0">
-            <Link href="/research">Read the agenda</Link> · <Link href={`/blog/${recent.slug}`}>Read the latest paper</Link>
+            <Link href="/research">The agenda</Link> · <Link href={`/blog/${paper.slug}`}>The latest paper</Link>
           </p>
-        </section>
-      </div>
+        </div>
+      </section>
     </main>
   );
 }

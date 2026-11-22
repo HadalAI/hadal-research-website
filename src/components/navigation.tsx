@@ -8,7 +8,6 @@ const links = [
   { href: '/publications', label: 'Publications' },
   { href: '/blog', label: 'Notes' },
   { href: '/models', label: 'Models' },
-  { href: '/compute', label: 'Compute' },
 ];
 
 export default function Navigation() {

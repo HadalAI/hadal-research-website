@@ -20,48 +20,53 @@ export default async function BlogPost({ params }: Props) {
   if (!post) notFound();
 
   return (
-    <main className="shell pb-4">
-      <p className="meta pt-10 mb-8"><Link href="/blog">← Notes</Link></p>
-
-      <article>
-        <p className="entry-meta">{post.kind} · {post.displayDate} · {post.readingTime}</p>
-        <h1 className="m-0 text-[clamp(1.7rem,3.6vw,2.15rem)] leading-[1.22]">{post.title}</h1>
-        <p className="meta mt-4 mb-2">{post.authors}</p>
-        <p className="label mb-8">{post.tags.join(' · ')}</p>
-
-        {post.links.length > 0 && (
-          <p className="meta mb-10 flex flex-wrap gap-x-5 gap-y-2">
-            {post.links.slice(0, 2).map((l) => (
-              <a key={l.href} href={l.href} target={l.external ? '_blank' : undefined} rel={l.external ? 'noreferrer' : undefined}>
-                {l.label}
-              </a>
-            ))}
-          </p>
-        )}
-
-        <div className="prose marginalia">{post.body}</div>
-
-        {post.links.length > 0 && (
-          <section className="mt-14">
-            <h2 className="section-title">Sources</h2>
-            <ul className="muted mb-0 pl-5">
-              {post.links.map((l) => (
-                <li key={l.href} className="mb-2">
-                  {l.external
-                    ? <a href={l.href} target="_blank" rel="noreferrer">{l.label}</a>
-                    : <Link href={l.href}>{l.label}</Link>}
-                </li>
+    <main className="sheet">
+      <section className="row pt-12">
+        <div className="hang">{post.kind}<br />{post.displayDate}<br />{post.readingTime}</div>
+        <div>
+          <p className="meta m-0 mb-4"><Link href="/blog">← Notes</Link></p>
+          <h1 className="page-title max-w-[36rem]">{post.title}</h1>
+          <p className="meta mt-5 mb-1">{post.authors}</p>
+          <p className="kicker m-0">{post.tags.join(' · ')}</p>
+          {post.links.length > 0 && (
+            <p className="meta mt-5 mb-0 flex flex-wrap gap-x-5 gap-y-2">
+              {post.links.slice(0, 2).map((l) => (
+                <a key={l.href} href={l.href} target={l.external ? '_blank' : undefined} rel={l.external ? 'noreferrer' : undefined}>
+                  {l.label}
+                </a>
               ))}
-            </ul>
-          </section>
-        )}
+            </p>
+          )}
+        </div>
+      </section>
 
-        <p className="meta mt-12 mb-0">
+      <section className="row mt-12">
+        <div className="hang" />
+        <article className="prose marginalia max-w-[40rem]">{post.body}</article>
+      </section>
+
+      {post.links.length > 0 && (
+        <section className="row mt-14">
+          <div className="hang">Sources</div>
+          <ul className="muted mb-0 pl-4">
+            {post.links.map((l) => (
+              <li key={l.href} className="mb-2">
+                {l.external ? <a href={l.href} target="_blank" rel="noreferrer">{l.label}</a>
+                            : <Link href={l.href}>{l.label}</Link>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section className="row mt-12">
+        <div className="hang">Status</div>
+        <p className="meta m-0 max-w-[36rem]">
           {post.kind === 'PAPER'
             ? 'Unpublished manuscript. Not peer reviewed; no priority claim is made.'
             : 'Lab note. Describes the conditions a result was produced under, not a new claim.'}
         </p>
-      </article>
+      </section>
     </main>
   );
 }

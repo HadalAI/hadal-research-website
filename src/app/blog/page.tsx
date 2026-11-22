@@ -6,23 +6,26 @@ export const metadata = { title: 'Notes' };
 export default function BlogIndex() {
   const posts = sortedPosts();
   return (
-    <main className="shell pb-4">
-      <header className="pt-14 pb-10">
-        <h1 className="display page-title m-0">Notes</h1>
-        <p className="lede mt-6 mb-0">
-          Papers, and the method around them. Written when there is something to record, not on a schedule.
-        </p>
-      </header>
+    <main className="sheet">
+      <section className="row pt-16 pb-2">
+        <div className="hang">§ Notes</div>
+        <div>
+          <h1 className="page-title">Notes</h1>
+          <p className="lede mt-5 mb-0 max-w-[34rem]">
+            Papers, and the method around them. Written when there is something to record, not on a schedule.
+          </p>
+        </div>
+      </section>
 
-      <div>
-        {posts.map((p) => (
-          <article key={p.slug} className="entry">
-            <p className="entry-meta">{p.kind} · {p.displayDate} · {p.readingTime}</p>
+      {posts.map((p) => (
+        <section key={p.slug} className="row mt-12">
+          <div className="hang">{p.displayDate}<br />{p.kind.toLowerCase()}</div>
+          <article>
             <Link href={`/blog/${p.slug}`} className="entry-title">{p.title}</Link>
-            <p className="mt-2 mb-0 muted">{p.summary}</p>
+            <p className="muted mt-2 mb-0 max-w-[38rem]">{p.summary}</p>
           </article>
-        ))}
-      </div>
+        </section>
+      ))}
     </main>
   );
 }

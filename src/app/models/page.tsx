@@ -6,33 +6,33 @@ export const metadata = { title: 'Models' };
 export default function ModelsPage() {
   const model = MODELS[0];
   return (
-    <main className="shell pb-4">
-      <header className="pt-14 pb-10">
-        <h1 className="display page-title m-0">Models</h1>
-        <p className="lede mt-6 mb-0">
-          The lab builds its own models so architecture questions can be asked at a scale we control.
-          Nothing is published until it can be evaluated against the probes in the agenda.
-        </p>
-      </header>
+    <main className="sheet">
+      <section className="row pt-16 pb-2">
+        <div className="hang">§ Model</div>
+        <div>
+          <h1 className="page-title">{model.name}</h1>
+          <p className="lede mt-5 mb-0 max-w-[34rem]">{model.description}</p>
+        </div>
+      </section>
 
-      <div className="stack">
-        <section>
-          <p className="label mb-2">{model.status}</p>
-          <h2 className="section-title">{model.name}</h2>
-          <p className="muted">{model.description}</p>
-          <dl className="rule-list mt-6">
+      <section className="row mt-12">
+        <div className="hang">{model.status}</div>
+        <div>
+          <dl className="hair-list m-0">
             {model.specs.map(([k, v]) => (
               <div key={k} className="flex flex-wrap items-baseline justify-between gap-4">
-                <dt className="label">{k}</dt>
+                <dt className="mono-label m-0">{k}</dt>
                 <dd className="m-0 text-[0.95rem]">{v}</dd>
               </div>
             ))}
           </dl>
-          {model.notes && <p className="meta mt-6 mb-0">{model.notes}</p>}
-        </section>
+          {model.notes && <p className="meta mt-5 mb-0">{model.notes}</p>}
+        </div>
+      </section>
 
-        <section>
-          <h2 className="section-title">Why hybrid</h2>
+      <section className="row mt-14">
+        <div className="hang">Why hybrid</div>
+        <div>
           <p>
             Attention is the expensive part of a transformer, and not every block needs it. The question
             this lab is built around is which parts do — and whether a hybrid stack can keep the retrieval
@@ -42,8 +42,8 @@ export default function ModelsPage() {
             HADAL-1 is the vehicle for that question, not a product. Its evaluation set comes from the{' '}
             <Link href="/research#long-context">long-context programme</Link>. {PROGRAMS.length} programmes, one model line.
           </p>
-        </section>
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
