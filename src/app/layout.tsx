@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Navigation from '@/components/navigation';
-import SoundingRail from '@/components/sounding-rail';
 import './fonts.css';
 import './globals.css';
 
@@ -15,7 +14,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <SoundingRail />
         <div className="sheet">
           <header className="site-head">
             <Link href="/" className="wordmark">Hadal Research</Link>

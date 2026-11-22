@@ -14,13 +14,12 @@ export default function HomePage() {
 
   return (
     <main className="sheet">
-      {/* masthead: left-aligned, with the sounding reading hanging in the margin */}
       <section className="row pt-10 pb-6">
         <div className="hang">Est. 2026</div>
         <div>
           <p className="kicker rise m-0">An independent research lab</p>
           <h1 className="hero rise rise-1 mt-2">
-            Research at depth, on models we can measure.
+            Hybrid language models, measured carefully.
           </h1>
           <p className="lede rise rise-2 mt-7 max-w-[36rem]">
             We study hybrid language models — how attention, recurrence and retrieval are put
