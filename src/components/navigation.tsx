@@ -7,7 +7,6 @@ const links = [
   { href: '/research', label: 'Research' },
   { href: '/publications', label: 'Publications' },
   { href: '/blog', label: 'Notes' },
-  { href: '/models', label: 'Models' },
 ];
 
 export default function Navigation() {

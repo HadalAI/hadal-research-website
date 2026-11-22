@@ -1,6 +1,6 @@
 /**
  * Lab content — the single source for the public research pages.
- * Everything here is authored, not scraped: program status, publications, models.
+ * Everything here is authored, not scraped: programme status and publications.
  */
 
 export type Status = 'ACTIVE' | 'PUBLISHED' | 'PLANNED' | 'IN PREPARATION';
@@ -56,32 +56,6 @@ export const PROGRAMS: Program[] = [
         href: '/blog/framing-newlines',
       },
     ],
-  },
-];
-
-export type Model = {
-  id: string;
-  name: string;
-  status: Status;
-  description: string;
-  specs: [string, string][];
-  notes?: string;
-};
-
-export const MODELS: Model[] = [
-  {
-    id: 'hadal-1',
-    name: 'HADAL-1',
-    status: 'PLANNED',
-    description:
-      'The first lab model: a hybrid attention / state-space stack at roughly one billion parameters, trained on the lab scheduler and evaluated against the long-context probes in program 01.',
-    specs: [
-      ['ARCHITECTURE', 'HYBRID ATTENTION + STATE-SPACE'],
-      ['TARGET SCALE', '~1B PARAMETERS'],
-      ['PRECISION', 'BF16 / FP32 EVAL'],
-      ['STATUS', 'DESIGN — NO RUNS YET'],
-    ],
-    notes: 'No weights exist. Nothing from this program has been released.',
   },
 ];
 
