@@ -7,7 +7,7 @@ export const metadata = { title: 'Publications' };
 export default function PublicationsPage() {
   return (
     <main className="sheet">
-      <section className="row pt-16 pb-2">
+      <section className="row pt-10 pb-0">
         <div className="hang">§ Papers</div>
         <div>
           <h1 className="page-title">Publications</h1>
@@ -19,7 +19,7 @@ export default function PublicationsPage() {
       </section>
 
       {PUBLICATIONS.map((pub) => (
-        <section key={pub.slug} className="row mt-14">
+        <section key={pub.slug} className="row mt-9">
           <div className="hang">{pub.displayDate}<br />{pub.version}</div>
           <article>
             <h2 className="section-title max-w-[30rem]">

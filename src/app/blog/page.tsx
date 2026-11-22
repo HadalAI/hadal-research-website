@@ -7,7 +7,7 @@ export default function BlogIndex() {
   const posts = sortedPosts();
   return (
     <main className="sheet">
-      <section className="row pt-16 pb-2">
+      <section className="row pt-10 pb-0">
         <div className="hang">§ Notes</div>
         <div>
           <h1 className="page-title">Notes</h1>
@@ -18,7 +18,7 @@ export default function BlogIndex() {
       </section>
 
       {posts.map((p) => (
-        <section key={p.slug} className="row mt-12">
+        <section key={p.slug} className="row mt-8">
           <div className="hang">{p.displayDate}<br />{p.kind.toLowerCase()}</div>
           <article>
             <Link href={`/blog/${p.slug}`} className="entry-title">{p.title}</Link>

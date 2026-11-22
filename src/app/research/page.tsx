@@ -6,7 +6,7 @@ export const metadata = { title: 'Research' };
 export default function ResearchPage() {
   return (
     <main className="sheet">
-      <section className="row pt-16 pb-2">
+      <section className="row pt-10 pb-0">
         <div className="hang">§ Research</div>
         <div>
           <h1 className="page-title">Two programmes,<br />and only what has been measured.</h1>
@@ -18,7 +18,7 @@ export default function ResearchPage() {
       </section>
 
       {PROGRAMS.map((p, i) => (
-        <section key={p.slug} id={p.slug} className="row mt-16 scroll-mt-16">
+        <section key={p.slug} id={p.slug} className="row mt-10 scroll-mt-10">
           <div className="hang">{p.id} · {p.status}</div>
           <div>
             <h2 className="section-title">{p.title}</h2>
@@ -44,7 +44,7 @@ export default function ResearchPage() {
         </section>
       ))}
 
-      <section className="row mt-16">
+      <section className="row mt-10">
         <div className="hang">Notes</div>
         <div>
           <h2 className="section-title">How the work is run</h2>

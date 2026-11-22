@@ -40,13 +40,13 @@ export default async function BlogPost({ params }: Props) {
         </div>
       </section>
 
-      <section className="row mt-12">
+      <section className="row mt-8">
         <div className="hang" />
         <article className="prose marginalia max-w-[40rem]">{post.body}</article>
       </section>
 
       {post.links.length > 0 && (
-        <section className="row mt-14">
+        <section className="row mt-9">
           <div className="hang">Sources</div>
           <ul className="muted mb-0 pl-4">
             {post.links.map((l) => (
@@ -59,7 +59,7 @@ export default async function BlogPost({ params }: Props) {
         </section>
       )}
 
-      <section className="row mt-12">
+      <section className="row mt-8">
         <div className="hang">Status</div>
         <p className="meta m-0 max-w-[36rem]">
           {post.kind === 'PAPER'

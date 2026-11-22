@@ -12,7 +12,7 @@ export const metadata = { title: 'Terms' };
 export default function TermsPage() {
   return (
     <main className="sheet">
-      <section className="row pt-16 pb-2">
+      <section className="row pt-10 pb-0">
         <div className="hang">Legal</div>
         <div>
           <h1 className="page-title">Terms of Use</h1>

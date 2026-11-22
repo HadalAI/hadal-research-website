@@ -11,7 +11,7 @@ export const metadata = { title: 'Privacy' };
 export default function PrivacyPage() {
   return (
     <main className="sheet">
-      <section className="row pt-16 pb-2">
+      <section className="row pt-10 pb-0">
         <div className="hang">Legal</div>
         <div>
           <h1 className="page-title">Privacy Policy</h1>

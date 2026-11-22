@@ -7,7 +7,7 @@ export default function ModelsPage() {
   const model = MODELS[0];
   return (
     <main className="sheet">
-      <section className="row pt-16 pb-2">
+      <section className="row pt-10 pb-0">
         <div className="hang">§ Model</div>
         <div>
           <h1 className="page-title">{model.name}</h1>
@@ -15,7 +15,7 @@ export default function ModelsPage() {
         </div>
       </section>
 
-      <section className="row mt-12">
+      <section className="row mt-8">
         <div className="hang">{model.status}</div>
         <div>
           <dl className="hair-list m-0">
@@ -30,7 +30,7 @@ export default function ModelsPage() {
         </div>
       </section>
 
-      <section className="row mt-14">
+      <section className="row mt-9">
         <div className="hang">Why hybrid</div>
         <div>
           <p>

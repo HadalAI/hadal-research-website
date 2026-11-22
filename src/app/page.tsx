@@ -15,23 +15,21 @@ export default function HomePage() {
   return (
     <main className="sheet">
       {/* masthead: left-aligned, with the sounding reading hanging in the margin */}
-      <section className="row pt-20 pb-6">
+      <section className="row pt-10 pb-6">
         <div className="hang">Est. 2026</div>
         <div>
           <p className="kicker rise m-0">An independent research lab</p>
-          <h1 className="hero rise rise-1 mt-3">
-            Research at depth,
-            <br />
-            on models we can measure.
+          <h1 className="hero rise rise-1 mt-2">
+            Research at depth, on models we can measure.
           </h1>
-          <p className="lede rise rise-2 mt-7 max-w-[34rem]">
+          <p className="lede rise rise-2 mt-7 max-w-[36rem]">
             We study hybrid language models — how attention, recurrence and retrieval are put
             together — and the measurement methods that decide whether a change is real.
           </p>
         </div>
       </section>
 
-      <section className="row mt-14">
+      <section className="row mt-9">
         <div className="hang">§ 01</div>
         <div>
           <h2 className="section-title">Recent work</h2>
@@ -46,7 +44,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="row mt-14">
+      <section className="row mt-9">
         <div className="hang">§ 02</div>
         <div>
           <h2 className="section-title">Programmes</h2>
@@ -61,7 +59,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="row mt-14">
+      <section className="row mt-9">
         <div className="hang">§ 03</div>
         <div>
           <h2 className="section-title">The model</h2>
@@ -71,7 +69,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="row mt-14">
+      <section className="row mt-9">
         <div className="hang">§ 04</div>
         <div>
           <h2 className="section-title">How we work</h2>
