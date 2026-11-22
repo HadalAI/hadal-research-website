@@ -15,9 +15,9 @@ module.exports = {
         marker: '#16181d',
       },
       fontFamily: {
-        serif: ['Rosehot', 'Georgia', 'serif'],
-        display: ['Gondens', 'Georgia', 'serif'],
-        sans: ['Rosehot', 'Georgia', 'serif'],
+        serif: ['Newsreader', 'Georgia', 'serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
+        sans: ['Newsreader', 'Georgia', 'serif'],
         mono: ['"Space Mono"', 'ui-monospace', 'monospace'],
       },
       maxWidth: { page: '864px', measure: '40rem' },

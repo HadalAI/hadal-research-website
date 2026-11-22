@@ -29,7 +29,7 @@ export default function HomePage() {
       </section>
 
       <section className="row mt-9">
-        <div className="hang">01</div>
+        <div className="hang">§ 01</div>
         <div>
           <h2 className="section-title">Recent work</h2>
           {PUBLICATIONS.map((p) => (
@@ -44,7 +44,7 @@ export default function HomePage() {
       </section>
 
       <section className="row mt-9">
-        <div className="hang">02</div>
+        <div className="hang">§ 02</div>
         <div>
           <h2 className="section-title">Programmes</h2>
           <div className="hair-list">
@@ -59,7 +59,7 @@ export default function HomePage() {
       </section>
 
       <section className="row mt-9">
-        <div className="hang">03</div>
+        <div className="hang">§ 03</div>
         <div>
           <h2 className="section-title">The model</h2>
           <p className="m-0"><span className="mono-label">{model.status}</span></p>
@@ -69,7 +69,7 @@ export default function HomePage() {
       </section>
 
       <section className="row mt-9">
-        <div className="hang">04</div>
+        <div className="hang">§ 04</div>
         <div>
           <h2 className="section-title">How we work</h2>
           <p>

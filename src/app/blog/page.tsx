@@ -8,7 +8,7 @@ export default function BlogIndex() {
   return (
     <main className="sheet">
       <section className="row pt-10 pb-0">
-        <div className="hang">Notes</div>
+        <div className="hang">§ Notes</div>
         <div>
           <h1 className="page-title">Notes</h1>
           <p className="lede mt-5 mb-0 max-w-[34rem]">
