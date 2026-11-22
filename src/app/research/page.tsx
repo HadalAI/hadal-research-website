@@ -7,7 +7,7 @@ export default function ResearchPage() {
   return (
     <main className="sheet">
       <section className="row pt-10 pb-0">
-        <div className="hang">§ Research</div>
+        <div className="hang">Research</div>
         <div>
           <h1 className="page-title">Two programmes,<br />and only what has been measured.</h1>
           <p className="lede mt-6 mb-0 max-w-[34rem]">

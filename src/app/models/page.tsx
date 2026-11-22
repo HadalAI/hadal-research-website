@@ -8,7 +8,7 @@ export default function ModelsPage() {
   return (
     <main className="sheet">
       <section className="row pt-10 pb-0">
-        <div className="hang">§ Model</div>
+        <div className="hang">Model</div>
         <div>
           <h1 className="page-title">{model.name}</h1>
           <p className="lede mt-5 mb-0 max-w-[34rem]">{model.description}</p>

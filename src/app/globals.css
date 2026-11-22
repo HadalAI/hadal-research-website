@@ -14,8 +14,8 @@
   --hair: #e3dccb;
   --accent: #1c5d5a;
   --mark: #f1e7ce;
-  --serif: "Newsreader", Georgia, "Times New Roman", serif;
-  --display: "Fraunces", Georgia, serif;
+  --serif: "Rosehot", Georgia, "Times New Roman", serif;
+  --display: "Gondens", "Rosehot", Georgia, serif;
   --mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --sheet: 54rem;
   --gutter: 7rem;
@@ -70,13 +70,14 @@ body {
 
 .display, h1, h2, h3 {
   font-family: var(--display);
-  font-variation-settings: "SOFT" 8;
   font-weight: 400;
+  letter-spacing: 0;
 }
 
 .hero {
-  font-size: clamp(1.35rem, 2.3vw, 1.55rem);
+  font-size: clamp(1.42rem, 2.4vw, 1.62rem);
   font-weight: 400;
+  letter-spacing: 0.005em;
   line-height: 1.3;
   letter-spacing: -0.005em;
   margin: 0;
@@ -176,8 +177,7 @@ a:hover, .link:hover { color: var(--accent); text-decoration-color: var(--accent
 }
 .wordmark {
   font-family: var(--display);
-  font-variation-settings: "SOFT" 18, "WONK" 1;
-  font-weight: 500;
+  font-weight: 400;
   font-size: 0.98rem;
   letter-spacing: 0;
   text-decoration: none;
@@ -189,10 +189,10 @@ a:hover, .link:hover { color: var(--accent); text-decoration-color: var(--accent
 .entry + .entry { margin-top: 2.5rem; }
 .entry-title {
   font-family: var(--display);
-  font-variation-settings: "SOFT" 8;
   font-weight: 400;
-  font-size: 1rem;
-  line-height: 1.45;
+  font-size: 1.06rem;
+  line-height: 1.4;
+  letter-spacing: 0.005em;
   text-decoration: none;
 }
 .entry-title:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--accent); }

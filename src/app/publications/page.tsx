@@ -8,7 +8,7 @@ export default function PublicationsPage() {
   return (
     <main className="sheet">
       <section className="row pt-10 pb-0">
-        <div className="hang">§ Papers</div>
+        <div className="hang">Papers</div>
         <div>
           <h1 className="page-title">Publications</h1>
           <p className="lede mt-5 mb-0 max-w-[34rem]">
