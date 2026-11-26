@@ -134,10 +134,10 @@ export const POSTS: Post[] = [
         <h2 className={H2}>What we measured</h2>
         <p className={P}>
           C ∈ {'{'}8, 16, 32, 64, 128, 256{'}'} × protection ρ ∈ {'{'}0, 0.05, 0.1, 0.2, 0.3, 0.5{'}'} ×
-          six policies, on Qwen2.5-0.5B (23 items, 4,968 rows) and replicated on SmolLM2-360M (20
-          items, 4,340 rows). One global retained set shared by every layer and KV head, the same
-          accounting convention as the source study; we report the stream count (48 and 160) so a
-          reader using per-head accounting can translate.
+          six policies: a 216-cell grid per item, on Qwen2.5-0.5B (23 items, 4,993 logged rows) and
+          replicated on SmolLM2-360M (20 items, 4,340 rows). One global retained set shared by every
+          layer and KV head, the same accounting convention as the source study; we report the stream
+          count (48 and 160) so a reader using per-head accounting can translate.
         </p>
         <p className={P}>
           The readout is the gold answer’s mean per-token log-probability under a cache that is{' '}
