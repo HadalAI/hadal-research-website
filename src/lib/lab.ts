@@ -57,6 +57,26 @@ export const PROGRAMS: Program[] = [
       },
     ],
   },
+  {
+    id: '03',
+    slug: 'cache-economics',
+    title: 'Cache economics at small budgets',
+    status: 'PUBLISHED',
+    lead: 'When a cache holds eight slots, what is actually worth keeping?',
+    summary:
+      'KV-cache eviction is tuned at a few hundred tokens, where a policy has room to rank content. Below a hundred slots the arithmetic changes: every protected position is content you do not keep. We swept the protection fraction from 0 to 50% across capacities of 8 to 256 tokens on two sub-1B models and found the protection-dominates result strengthens rather than breaks at the small end — and that the whole effect, at sixteen slots or fewer, is the retention of one token. The remaining loss at tiny caches is query information that no prefill scorer has.',
+    approach: [
+      'Measure at the operating point a device actually has, not the one a benchmark happens to use.',
+      'Verify the harness against independent forward paths before measuring a difference, and report that check alongside the result.',
+      'Separate what a rule claims from what it does: a fraction and an absolute count are different interventions once the budget is small.',
+    ],
+    outputs: [
+      {
+        label: 'One Slot Is All You Need — paper (Nov 2026)',
+        href: '/blog/one-slot',
+      },
+    ],
+  },
 ];
 
 export type Publication = {
@@ -74,6 +94,28 @@ export type Publication = {
 };
 
 export const PUBLICATIONS: Publication[] = [
+  {
+    slug: 'one-slot',
+    title: 'One Slot Is All You Need: structural protection in tiny KV caches',
+    authors: 'Kyssta',
+    date: '2026-11-26',
+    displayDate: '26 NOVEMBER 2026',
+    version: 'v1',
+    venue: 'PREPRINT \u00b7 NOT PEER REVIEWED',
+    status: 'PUBLISHED',
+    abstract:
+      'KV-cache eviction is tuned where caches hold hundreds of tokens, yet sub-1B on-device models often afford fewer than a hundred. A 2026 study reports that reserving a fixed fraction of the cache at the prompt boundaries \u2014 structural protection \u2014 makes the scoring policy nearly irrelevant, and recommends 10% per side; that sweep used a single capacity, C = 256, and its four-slot floor leaves no content at C = 8. We sweep protection 0\u201350% at C = 8\u2013256 across six eviction policies on Qwen2.5-0.5B and SmolLM2-360M with a slicing harness exact to 2.5 \u00d7 10\u207b\u2075 nats throughout. The law does not break: protection gains +5.78 nats/token for LRU at C = 8 versus +2.37 at C = 256, and policy spread compresses 13.9\u00d7. The mechanism is one token: position 0 carries 37% of answer attention, and one reserved slot per side recovers 76% of the eviction damage. What transfers is an absolute count, not a fraction; the remaining gap is query information eviction never sees.',
+    bibtex:
+      '@misc{kyssta2026oneslot, title = {One Slot Is All You Need: Structural Protection in Tiny KV Caches}, author = {Kyssta}, year = {2026}, note = {Preprint. Not peer reviewed.}, url = {https://hadal.run/blog/one-slot}}',
+    links: [
+      { label: 'Read on the blog', href: '/blog/one-slot' },
+      { label: 'Paper (PDF)', href: '/papers/one-slot-tiny-kv-cache.pdf' },
+      {
+        label: 'Code & raw records',
+        href: '/papers/one-slot-tiny-kv-cache-supplementary.zip',
+      },
+    ],
+  },
   {
     slug: 'framing-newlines',
     title: 'Framing Newlines: how tool-call parsers rewrite the files agents write',
