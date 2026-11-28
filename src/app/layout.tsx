@@ -5,9 +5,11 @@ import './fonts.css';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.hadal.run'),
   title: { default: 'Hadal Research', template: '%s — Hadal Research' },
   description:
     'Hadal Research is a small lab studying hybrid language models and the measurement methods that decide whether a change is real.',
+  openGraph: { type: 'website', siteName: 'Hadal Research', url: '/' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

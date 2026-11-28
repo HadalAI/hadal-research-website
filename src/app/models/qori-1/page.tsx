@@ -2,9 +2,24 @@ import Link from 'next/link';
 import BarChart from '@/components/bar-chart';
 
 export const metadata = {
-  title: 'Models',
+  title: 'Qori 1',
   description:
-    'Qori 1 — a 1.7B open model that writes file edits a harness can apply byte-for-byte.',
+    'A 1.7B open model that writes file edits a harness can apply byte-for-byte: 90% of held-out commits applied exactly, against 31.7% for a 1.8× larger model.',
+  alternates: { canonical: '/models/qori-1' },
+  openGraph: {
+    type: 'article',
+    title: 'Qori 1 — a 1.7B model that writes file edits a harness can apply exactly',
+    description:
+      'Open weights and adapters, evaluated on four held-out repositories with per-item results published.',
+    url: '/models/qori-1',
+    siteName: 'Hadal Research',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Qori 1 — byte-exact file edits from a 1.7B model',
+    description:
+      '90.0% of held-out commits applied exactly, against 31.7% for a 1.8× larger model. Weights, adapters and raw results are public.',
+  },
 };
 
 /**
@@ -15,7 +30,9 @@ export default function ModelsPage() {
   return (
     <main className="sheet">
       <section className="row pt-10 pb-0">
-        <div className="hang">§ Model</div>
+        <div className="hang">
+          <Link href="/models" className="muted">← Models</Link>
+        </div>
         <div>
           <h1 className="page-title">Qori 1</h1>
           <p className="lede mt-5 mb-0 max-w-[34rem]">
